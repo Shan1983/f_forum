@@ -1,4 +1,18 @@
-const { errorLog } = require("../helpers/logging");
+const { errorLog, logger } = require("../helpers/logging");
+
+exports.log = (req, res, next) => {
+  const log = {
+    ip: req.ip,
+    user: "12345",
+    status: res.statusCode,
+    method: req.method,
+    url: res.originalUrl,
+    level: "info",
+    message: "OK"
+  };
+  logger.info(log);
+  next();
+};
 
 exports.notFound = (req, res, next) => {
   const error = new Error(`Not Found - ${req.originalUrl}`);
@@ -11,6 +25,7 @@ exports.errorHandler = (err, req, res, next) => {
   // log error
   const logError = {
     ip: req.ip,
+    user: "12345",
     status: res.statusCode,
     method: req.method,
     url: res.originalUrl,
