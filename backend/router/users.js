@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-router.get("/", (req, res) => {
+const { log } = require("../middlewares");
+
+router.get("/", log, (req, res) => {
   res.json({ status: "Ok" });
 });
 
