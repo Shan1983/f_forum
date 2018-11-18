@@ -3,13 +3,16 @@ require("dotenv").config();
 
 module.exports = {
   development: {
-    client: process.env.DATABASE_CLIENT,
-    connection: process.env.DATABASE_DEV_URL,
-    migrations: {
-      directory: "db/migrations"
+    client: "pg",
+    connection: {
+      database: "f_forum",
+      host: "localhost"
     },
-    seeders: {
-      directory: "db/seeders"
+    migrations: {
+      directory: "./db/migrations"
+    },
+    seeds: {
+      directory: "./db/seeds"
     }
   },
 
