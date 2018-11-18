@@ -3,6 +3,7 @@ exports.up = function(knex, Promise) {
     t.uuid("id").primary();
     t.uuid("category_id").notNullable();
     t.string("title").notNullable();
+    t.string("slug").notNullable();
     t.uuid("user_id").notNullable();
     t.text("discussion").notNullable();
     t.timestamps(true, true);
