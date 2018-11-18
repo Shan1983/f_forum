@@ -25,7 +25,7 @@ app.use(passport.initialize());
 // setup authentication
 
 // setup routes
-app.use("/api/v1/users", require("./router/users"));
+app.use("/api/v1/user", require("./router/users"));
 
 // setup 404 handle
 app.use(notFound);
