@@ -9,9 +9,9 @@ const logDir = "./logs";
 const logFormatter = args => {
   const date = moment().format("DD.MM.YYYY hh:mm:ss");
   let msg;
-  msg = `${date} - ${args.ip} - ${args.status} - ${args.method} - ${
-    args.url
-  } - ${args.level} - ${args.message}`;
+  msg = `${date} - ${args.ip} - ${args.user} - ${args.status} - ${
+    args.method
+  } - ${args.url} - ${args.level} - ${args.message}`;
   return msg;
 };
 
