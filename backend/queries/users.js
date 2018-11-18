@@ -22,9 +22,9 @@ module.exports = {
     return db("users").where("role_id", "12345");
   },
 
-  findByEmail(email) {
+  findById(id) {
     return db("users")
-      .where("email", email)
+      .where("id", id)
       .first();
   },
 
