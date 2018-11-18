@@ -100,7 +100,19 @@ exports.register = async (req, res, next) => {
   }
 };
 
-exports.logout = async (req, res, next) => {};
+exports.logout = async (req, res, next) => {
+  try {
+    req.session.destroy(() => {
+      res.clearCookie("adminUI");
+      res.clearCookie("sexy-token");
+      res.json({
+        success: true
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 exports.upload = async (req, res, next) => {};
 
