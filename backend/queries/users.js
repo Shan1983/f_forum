@@ -2,6 +2,7 @@ const Joi = require("joi");
 const db = require("../db");
 
 const { insertAndValidate } = require("./index");
+const { getRoleId } = require("../helpers/roles");
 
 const schema = Joi.object().keys({
   id: Joi.string().required(),
@@ -18,13 +19,41 @@ const schema = Joi.object().keys({
 });
 
 module.exports = {
-  findAllAdmins() {
-    return db("users").where("role_id", "12345");
+  async findAllAdmins() {
+    const admins = await db("users")
+      .where("role_id", await getRoleId("Admin"))
+      .where("role_id", await getRoleId("Moderator"));
+
+    if (admins.length <= 0) {
+      return [{ status: 200, message: "No Admin Users." }];
+    } else {
+      return admins;
+    }
+  },
+
+  async findAllUsers() {
+    const query = await db("users");
+    const user = query[0];
+
+    const userObj = {
+      color_icon: user.color_icon,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar
+    };
+
+    return userObj;
+  },
+
+  async findByEmail(email) {
+    const query = await db("users").where("email", email);
+    return query[0];
   },
 
   findById(id) {
     return db("users")
       .where("id", id)
+      .pluck("id")
       .first();
   },
 
