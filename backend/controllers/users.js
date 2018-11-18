@@ -1,9 +1,33 @@
 const randomColor = require("randomcolor");
-const { generateId, generateHash } = require("../helpers/auth");
-const { getRoleId } = require("../helpers/roles");
+const bcrypt = require("bcryptjs");
+const {
+  generateId,
+  generateHash,
+  setupUserSession
+} = require("../helpers/auth");
+const { getRoleId, getRoleFromId } = require("../helpers/roles");
 const User = require("../queries/users");
+const { signToken } = require("../helpers/tokens");
 
-exports.getAll = async (req, res, next) => {};
+exports.getAll = async (req, res, next) => {
+  try {
+    const users = await User.findAllUsers();
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getAllAdmins = async (req, res, next) => {
+  try {
+    const query = await User.findAllAdmins();
+    const admins = query[0];
+
+    res.json(admins);
+  } catch (error) {
+    next(error);
+  }
+};
 
 exports.getSingle = async (req, res, next) => {};
 
@@ -13,7 +37,48 @@ exports.getAvatar = async (req, res, next) => {};
 
 exports.verifyEmail = async (req, res, next) => {};
 
-exports.login = async (req, res, next) => {};
+exports.login = async (req, res, next) => {
+  try {
+    // get the user
+    const query = await User.findByEmail(req.body.email);
+
+    // check user is banned
+    if (query.banned) {
+      throw new Error("BANNED");
+    }
+
+    // validate users password
+    if (await bcrypt.compare(req.body.password, query.hash)) {
+      // generate a new token for the user
+      const token = await signToken(query);
+      // set up the users session
+      await setupUserSession(
+        req,
+        query.username,
+        query.id,
+        query.role_id,
+        token
+      );
+
+      const userObj = {
+        id: query.id,
+        color: query.color_icon,
+        username: query.username,
+        email: query.email,
+        role: await getRoleFromId(query.role_id),
+        created_at: query.created_at,
+        token
+      };
+
+      res.json(userObj);
+    } else {
+      throw new Error("Unauthorized");
+    }
+  } catch (error) {
+    res.status(400);
+    next(error);
+  }
+};
 
 exports.register = async (req, res, next) => {
   try {
@@ -22,7 +87,7 @@ exports.register = async (req, res, next) => {
       color_icon: randomColor(),
       username: req.body.username,
       email: req.body.email,
-      hash: generateHash(req.body.hash),
+      hash: generateHash(req.body.password),
       role_id: await getRoleId("Member")
     };
 
