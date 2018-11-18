@@ -21,7 +21,6 @@ app.use(cookieParser());
 app.use(cors());
 app.use(compression());
 app.use(helmet());
-app.use(passport.initialize());
 
 // setup session middleware
 app.set("trust proxy", 1);
@@ -29,12 +28,13 @@ app.use(
   session({
     secret: `${process.env.SESSION_SECRET}`,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true }
+    saveUninitialized: true
   })
 );
 
 // setup authentication
+app.use(passport.initialize());
+require("./services/authentication")(passport);
 
 // setup routes
 app.use("/api/v1/user", require("./router/users"));
