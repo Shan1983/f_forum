@@ -39,4 +39,6 @@ exports.errorHandler = (err, req, res, next) => {
     status: res.statusCode,
     message: err.message
   });
+
+  next();
 };
