@@ -5,6 +5,7 @@ const { log } = require("../middlewares");
 const controller = require("../controllers/users");
 
 router.get("/", log, controller.getAll);
+router.get("/admins", log, controller.getAllAdmins);
 router.get("/:id", log, controller.getSingle);
 router.get("/profile/:id", log, controller.getProfile);
 router.get("/:id/avatar", log, controller.getAvatar);
