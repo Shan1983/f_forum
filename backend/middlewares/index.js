@@ -1,9 +1,10 @@
+const passport = require("passport");
 const { errorLog, logger } = require("../helpers/logging");
 
 exports.log = (req, res, next) => {
   const log = {
     ip: req.ip,
-    user: "12345",
+    user: req.session.userId || "N/A",
     status: res.statusCode,
     method: req.method,
     url: res.originalUrl,
@@ -25,7 +26,7 @@ exports.errorHandler = (err, req, res, next) => {
   // log error
   const logError = {
     ip: req.ip,
-    user: "12345",
+    user: req.session.userId || "N/A",
     status: res.statusCode,
     method: req.method,
     url: res.originalUrl,
@@ -41,4 +42,25 @@ exports.errorHandler = (err, req, res, next) => {
   });
 
   next();
+};
+
+exports.isAuthenticated = (req, res, next) => {
+  passport.authenticate("jwt", { session: false }, (error, user, info) => {
+    if (error) {
+      return next(error);
+    }
+
+    if (info) {
+      res.status(401);
+      return res.json({
+        error: info.message
+      });
+    }
+
+    if (!user) {
+      return res.json({ error: "Not authorized" });
+    }
+
+    return next();
+  })(req, res, next);
 };
