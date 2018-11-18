@@ -6,6 +6,7 @@ const cors = require("cors");
 const compression = require("compression");
 const bodyParser = require("body-parser");
 const helmet = require("helmet");
+const session = require("express-session");
 const { logger } = require("./helpers/logging");
 require("dotenv").config();
 
@@ -21,6 +22,17 @@ app.use(cors());
 app.use(compression());
 app.use(helmet());
 app.use(passport.initialize());
+
+// setup session middleware
+app.set("trust proxy", 1);
+app.use(
+  session({
+    secret: `${process.env.SESSION_SECRET}`,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true }
+  })
+);
 
 // setup authentication
 
