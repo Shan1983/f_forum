@@ -77,3 +77,6 @@ typings/
 
 #os
 .DS_STORE
+
+#storage
+/uploads
