@@ -11,3 +11,12 @@ exports.insertAndValidate = async (table, item, schema) => {
     return Promise.reject(result.error);
   }
 };
+
+exports.softDelete = async (table, id) => {
+  return db(table)
+    .where("id", id)
+    .update({
+      deleted: true,
+      deleted_at: new Date()
+    });
+};
