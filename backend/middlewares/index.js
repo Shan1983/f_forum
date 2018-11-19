@@ -7,7 +7,7 @@ exports.log = (req, res, next) => {
     user: req.session.userId || "N/A",
     status: res.statusCode,
     method: req.method,
-    url: res.originalUrl,
+    url: req.originalUrl,
     level: "info",
     message: "OK"
   };
@@ -29,15 +29,18 @@ exports.errorHandler = (err, req, res, next) => {
     user: req.session.userId || "N/A",
     status: res.statusCode,
     method: req.method,
-    url: res.originalUrl,
+    url: req.originalUrl,
     level: "error",
     message: err.message
   };
 
   errorLog.error(logError);
 
+  console.log(err);
+
   res.json({
     status: res.statusCode,
+    error: err.error,
     message: err.message
   });
 
@@ -58,7 +61,16 @@ exports.isAuthenticated = (req, res, next) => {
     }
 
     if (!user) {
+      res.status(401);
       return res.json({ error: "Not authorized" });
+    }
+
+    if (!req.session.userId) {
+      res.status(401);
+      return next({
+        error: "NOTAUTHORIZED",
+        message: "You are not authorized to continue."
+      });
     }
 
     return next();
