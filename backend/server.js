@@ -10,9 +10,19 @@ const session = require("express-session");
 const { logger } = require("./helpers/logging");
 require("dotenv").config();
 
+const KnexSessionStoreFactory = require("connect-session-knex");
+const KnexSessionStore = KnexSessionStoreFactory(session);
+const db = require("./db");
+
 const { notFound, errorHandler } = require("./middlewares");
 
 const app = express();
+
+// setup the session store
+const sessionStore = new KnexSessionStore({
+  knex: db,
+  tablename: "sessions"
+});
 
 // setup the middlewares
 app.use(bodyParser.json());
@@ -23,17 +33,23 @@ app.use(compression());
 app.use(helmet());
 
 // setup session middleware
+const oneWeekInMillis = 604800000;
 app.set("trust proxy", 1);
 app.use(
   session({
     secret: `${process.env.SESSION_SECRET}`,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false,
+    cookie: {
+      maxAge: oneWeekInMillis
+    },
+    store: sessionStore
   })
 );
 
 // setup authentication
 app.use(passport.initialize());
+app.use(passport.session());
 require("./services/authentication")(passport);
 
 // setup routes
