@@ -6,6 +6,10 @@ exports.up = function(knex, Promise) {
     t.text("description");
     t.string("icon_color").defaultTo("#000");
     t.timestamps(true, true);
+    t.boolean("deleted")
+      .defaultTo(false)
+      .notNullable();
+    t.timestamp("deleted_at");
   });
 };
 

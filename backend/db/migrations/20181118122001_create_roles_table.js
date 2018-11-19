@@ -3,6 +3,10 @@ exports.up = function(knex, Promise) {
     t.uuid("id").primary();
     t.string("title").notNullable();
     t.timestamps(true, true);
+    t.boolean("deleted")
+      .defaultTo(false)
+      .notNullable();
+    t.timestamp("deleted_at");
   });
 };
 

@@ -10,7 +10,13 @@ exports.up = function(knex, Promise) {
     t.boolean("banned").defaultTo(false);
     t.uuid("role_id");
     t.string("avatar");
+    t.string("token");
+    t.boolean("verified").defaultTo(false);
     t.timestamps(true, true);
+    t.boolean("deleted")
+      .defaultTo(false)
+      .notNullable();
+    t.timestamp("deleted_at");
 
     t.foreign("role_id").references("roles.id");
   });

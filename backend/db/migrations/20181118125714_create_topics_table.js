@@ -7,6 +7,10 @@ exports.up = function(knex, Promise) {
     t.uuid("user_id").notNullable();
     t.text("discussion").notNullable();
     t.timestamps(true, true);
+    t.boolean("deleted")
+      .defaultTo(false)
+      .notNullable();
+    t.timestamp("deleted_at");
 
     t.foreign("category_id").references("categories.id");
     t.foreign("user_id").references("users.id");

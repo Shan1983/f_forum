@@ -5,6 +5,10 @@ exports.up = function(knex, Promise) {
     t.uuid("reciever_id").notNullable();
     t.text("message").notNullable();
     t.timestamps(true, true);
+    t.boolean("deleted")
+      .defaultTo(false)
+      .notNullable();
+    t.timestamp("deleted_at");
 
     t.foreign("sender_id").references("users.id");
     t.foreign("reciever_id").references("users.id");
