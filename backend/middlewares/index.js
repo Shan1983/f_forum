@@ -76,3 +76,27 @@ exports.isAuthenticated = (req, res, next) => {
     return next();
   })(req, res, next);
 };
+
+exports.admin = (req, res, next) => {
+  if (req.session.role === "Admin" || req.session.role === "Super Admin") {
+    next();
+  } else {
+    res.status(401);
+    next({
+      error: "NOTAUTHORIZED",
+      message: "You are not authorized to continue."
+    });
+  }
+};
+
+exports.staff = (req, res, next) => {
+  if (req.session.role !== "Member") {
+    next();
+  } else {
+    res.status(401);
+    next({
+      error: "NOTAUTHORIZED",
+      message: "You are not authorized to continue."
+    });
+  }
+};
