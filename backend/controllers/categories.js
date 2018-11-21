@@ -9,6 +9,8 @@ const {
 const { generateId } = require("../helpers/auth");
 const slugify = require("slugify");
 
+// const emitter = require("../events/test");
+
 exports.getAllCategories = async (req, res, next) => {
   try {
     // get all the categories
