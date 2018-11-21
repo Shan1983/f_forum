@@ -7,11 +7,22 @@ exports.up = function(knex, Promise) {
       .unique()
       .notNullable();
     t.string("hash").notNullable();
+    t.integer("post_count")
+      .unsigned()
+      .defaultTo(0);
+    t.integer("points")
+      .unsigned()
+      .defaultTo(0);
+    t.json("friends_id");
     t.boolean("banned").defaultTo(false);
     t.uuid("role_id");
     t.string("avatar");
     t.string("token");
     t.boolean("verified").defaultTo(false);
+    t.string("ptoken");
+    t.text("bio");
+    t.boolean("allowSubs").defaultTo(true);
+    t.boolean("advertising").defaultTo(false);
     t.timestamps(true, true);
     t.boolean("deleted")
       .defaultTo(false)
