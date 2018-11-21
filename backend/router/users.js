@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const moment = require("moment");
 
-const { log, isAuthenticated } = require("../middlewares");
+const { log, isAuthenticated, admin, staff } = require("../middlewares");
 const controller = require("../controllers/users");
 
 // setup multer
@@ -18,8 +18,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, limits: { fileSize: 1000000 } });
 
-router.get("/", isAuthenticated, log, controller.getAll);
-router.get("/admins", isAuthenticated, log, controller.getAllAdmins);
+router.get("/", isAuthenticated, staff, log, controller.getAll);
+router.get("/admins", isAuthenticated, admin, log, controller.getAllAdmins);
 router.get("/:id", isAuthenticated, log, controller.getSingle);
 router.get("/profile/:id", isAuthenticated, log, controller.getProfile);
 router.get("/:id/avatar", log, controller.getAvatar);
@@ -35,7 +35,7 @@ router.post(
   log,
   controller.upload
 );
-router.post("/:id/close", isAuthenticated, log, controller.closeAccount);
+router.post("/:id/close", isAuthenticated, admin, log, controller.closeAccount);
 
 router.put(
   "/profile/:id/email",
@@ -49,11 +49,23 @@ router.put(
   log,
   controller.updateProfilePassword
 );
-// router.put(
-//   "/profile/:id/options",
-//   isAuthenticated,
-//   log,
-//   controller.updateProfileOptions
-// );
+
+router.put(
+  "/profile/:id/options",
+  isAuthenticated,
+  log,
+  controller.updateProfileOptions
+);
+
+router.post("/request/reset", log, controller.requestPasswordReset);
+router.get("/:token/request/reset", log, controller.resetPassword);
+
+router.post(
+  "/:id/privileges",
+  isAuthenticated,
+  admin,
+  log,
+  controller.privileges
+);
 
 module.exports = router;
