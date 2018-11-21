@@ -103,5 +103,14 @@ module.exports = {
 
   async closeAccount(id) {
     return softDelete("users", id);
+  },
+
+  async findByToken(col, token) {
+    const query = db("users")
+      .where(col, token)
+      .where("deleted", false)
+      .first();
+
+    return query;
   }
 };
