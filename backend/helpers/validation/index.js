@@ -11,6 +11,12 @@ exports.updateEmailSchema = Joi.object().keys({
     .required()
 });
 
+exports.updateOptionsSchema = Joi.object().keys({
+  allowSubs: Joi.boolean(),
+  advertising: Joi.boolean(),
+  bio: Joi.string()
+});
+
 exports.registerSchema = Joi.object().keys({
   username: Joi.string().required(),
   email: Joi.string()
