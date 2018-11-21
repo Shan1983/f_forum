@@ -125,7 +125,16 @@ exports.getAvatar = async (req, res, next) => {
 exports.verifyEmail = async (req, res, next) => {
   try {
     // get the user
-    const user = await User.verifyEmail(req.params.token);
+    const user = await User.findByToken("token", req.params.token);
+
+    // validate user found
+    if (user === undefined) {
+      res.status(400);
+      return next({
+        error: "TOKENERROR",
+        message: `Email verification failed.`
+      });
+    }
 
     user.token = null;
     user.verified = true;
@@ -138,13 +147,94 @@ exports.verifyEmail = async (req, res, next) => {
   }
 };
 
+exports.resetPassword = async (req, res, next) => {
+  try {
+    // get the user
+    const user = await User.findByToken("ptoken", req.params.token);
+
+    // validate user found
+    if (user === undefined) {
+      res.status(400);
+      return next({
+        error: "TOKENERROR",
+        message: `Password reset failed.`
+      });
+    }
+
+    // validate input
+    const errors = Joi.validate(req.body, updatePasswordSchema);
+
+    if (!errors.error) {
+      user.ptoken = null;
+      if (req.body.password === req.body.confirmPassword) {
+        user.hash = generateHash(req.body.password);
+      } else {
+        res.status(400);
+        next({
+          error: "VALIDATIONERROR",
+          message: "Password fields need to match."
+        });
+      }
+      User.update(user.id, user);
+    } else {
+      res.status(400);
+      return next({
+        error: errors.error.name.toUpperCase(),
+        message: errors.error.details[0].message
+      });
+    }
+
+    await User.update(user.id, user);
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.requestPasswordReset = async (req, res, next) => {
+  try {
+    // validate input
+    const errors = Joi.validate(req.body, updateEmailSchema);
+
+    if (!errors.error) {
+      // get the user
+      const user = await User.findByEmail(req.params.email);
+
+      // validate user found
+      if (user === undefined) {
+        res.status(400);
+        return next({
+          error: "ACCOUNTNOTEXISTS",
+          message: "This account does not exist."
+        });
+      }
+
+      user.ptoken = uuidv4();
+
+      await User.update(user.id, user);
+
+      // send email event
+      res.json({ success: true });
+    } else {
+      res.status(400);
+      return next({
+        error: errors.error.name.toUpperCase(),
+        message: errors.error.details[0].message
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.login = async (req, res, next) => {
   try {
     // get the user
     const query = await User.findByEmail(req.body.email);
 
     if (!query) {
-      res.status(401);
+      res.status(403);
       return next({
         error: "LOGINERROR",
         message: "The email or password provided was incorrect."
@@ -185,7 +275,7 @@ exports.login = async (req, res, next) => {
 
       res.json(userObj);
     } else {
-      res.status(401);
+      res.status(403);
       return next({
         error: "LOGINERROR",
         message: "The email or password provided was incorrect."
@@ -291,6 +381,14 @@ exports.closeAccount = async (req, res, next) => {
       });
     }
 
+    if ((await getRoleFromId(user.role_id)) === "Admin") {
+      res.status(400);
+      return next({
+        error: "ACCOUNTCLOSEERROR",
+        message: "You can not close an admin account."
+      });
+    }
+
     await User.closeAccount(req.params.id);
 
     res.json({ success: true });
@@ -329,6 +427,52 @@ exports.updateProfileEmail = async (req, res, next) => {
     // update the users email
     if (!errors.error) {
       user.email = req.body.email;
+      await User.update(user.id, user);
+    } else {
+      res.status(400);
+      return next({
+        error: errors.error.name.toUpperCase(),
+        message: errors.error.details[0].message
+      });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400);
+    next(error);
+  }
+};
+
+exports.updateProfileOptions = async (req, res, next) => {
+  try {
+    // validate input
+    const errors = Joi.validate(req.body, updateOptionsSchema);
+
+    // get the user
+    const user = await User.findById(req.params.id);
+
+    // validate user exists
+    if (user === undefined) {
+      res.status(400);
+      return next({
+        error: "ACCOUNTNOTEXISTS",
+        message: "This account does not exist."
+      });
+    }
+
+    // validate the user can make changes
+    if (user.id !== req.session.userId) {
+      res.status(401);
+      return next({
+        error: "NOTAUTHORIZED",
+        message: "You are not authorized to continue."
+      });
+    }
+
+    // update the users email
+    if (!errors.error) {
+      user.bio = req.body.description;
+      user.allowSubs = req.body.subscriptions;
+      user.advertising = req.body.advertising;
       await User.update(user.id, user);
     } else {
       res.status(400);
@@ -390,6 +534,47 @@ exports.updateProfilePassword = async (req, res, next) => {
         message: errors.error.details[0].message
       });
     }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400);
+    next(error);
+  }
+};
+
+exports.privileges = async (req, res, next) => {
+  try {
+    // find the user
+    const user = await User.findById(req.params.id);
+
+    // validate user
+    if (user === undefined) {
+      res.status(400);
+      return next({
+        error: "ACCOUNTNOTEXISTS",
+        message: `This account does not exist.`
+      });
+    }
+
+    const currentRole = await getRoleFromId(user.role_id);
+
+    if (currentRole === req.body.role) {
+      res.status(400);
+      return next({
+        error: "PRIVILEGESERROR",
+        message: `You can't update a user to same role.`
+      });
+    }
+
+    const newRole = await getRoleId(req.body.role);
+
+    if (newRole === undefined || newRole === "Super Admin") {
+      res.status(400);
+      return next({ error: "ROLEERROR", message: "Unknown role" });
+    }
+
+    user.role_id = newRole;
+    await User.update(user.id, user);
 
     res.json({ success: true });
   } catch (error) {
