@@ -3,7 +3,8 @@ const { generateId } = require("../../helpers/auth");
 const roles = [
   { id: generateId(), title: "Member" },
   { id: generateId(), title: "Moderator" },
-  { id: generateId(), title: "Admin" }
+  { id: generateId(), title: "Admin" },
+  { id: generateId(), title: "Super Admin" }
 ];
 
 exports.seed = function(knex, Promise) {
