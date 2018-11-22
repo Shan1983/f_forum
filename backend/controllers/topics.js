@@ -1,6 +1,7 @@
 const randomColor = require("randomcolor");
 const Joi = require("joi");
 const Topic = require("../queries/topics");
+const User = require("../queries/users");
 const {
   topicSchema,
   topicUpdateSchema,
@@ -16,7 +17,7 @@ exports.allCategoryTopics = async (req, res, next) => {
 
     if (topics.rows.length <= 0) {
       res.status(400);
-      next({
+      return next({
         error: "NOTOPICS",
         message: `Currently no topics.`
       });
@@ -83,7 +84,7 @@ exports.getDeletedTopics = async (req, res, next) => {
 
     if (topics === undefined) {
       res.status(404);
-      next({
+      return next({
         error: "NOTFOUND",
         message: "No deleted topics found."
       });
@@ -97,16 +98,6 @@ exports.getDeletedTopics = async (req, res, next) => {
 };
 exports.createNewTopic = async (req, res, next) => {
   try {
-    const errors = Joi.validate(topicSchema);
-
-    if (errors.error) {
-      res.status(400);
-      return next({
-        error: errors.error.name.toUpperCase(),
-        message: errors.error.details[0].message
-      });
-    }
-
     const newTopic = {
       id: generateId(),
       topic_color: req.body.color || randomColor(),
@@ -118,6 +109,9 @@ exports.createNewTopic = async (req, res, next) => {
     };
 
     const topic = await Topic.insert(newTopic);
+
+    await User.addToPostCount(newTopic.user_id);
+    await User.addToPoints(newTopic.user_id, 50);
 
     res.json(topic);
   } catch (error) {
@@ -131,7 +125,7 @@ exports.lockTopic = async (req, res, next) => {
 
     if (topic === undefined) {
       res.status(404);
-      next({
+      return next({
         error: "NOTFOUND",
         message: "No topic found"
       });
@@ -153,7 +147,7 @@ exports.makeTopicSticky = async (req, res, next) => {
 
     if (topic === undefined) {
       res.status(404);
-      next({ error: "NOTFOUND", message: "No topic found" });
+      return next({ error: "NOTFOUND", message: "No topic found" });
     }
 
     // update the topics sticky status
@@ -172,7 +166,7 @@ exports.moveTopic = async (req, res, next) => {
 
     if (topic === undefined) {
       res.status(404);
-      next({ error: "NOTFOUND", message: "No topic found" });
+      return next({ error: "NOTFOUND", message: "No topic found" });
     }
 
     const errors = Joi.validate(topicCategorySchema);
@@ -203,7 +197,7 @@ exports.editTopic = async (req, res, next) => {
 
     if (topic === undefined) {
       res.status(404);
-      next({ error: "NOTFOUND", message: "No topic found" });
+      return next({ error: "NOTFOUND", message: "No topic found" });
     }
 
     if (topic.user_id !== req.session.userId) {
@@ -246,12 +240,12 @@ exports.changeTopicColor = async (req, res, next) => {
 
     if (topic === undefined) {
       res.status(404);
-      next({ error: "NOTFOUND", message: "No topic found" });
+      return next({ error: "NOTFOUND", message: "No topic found" });
     }
 
     if (topic.user_id !== req.session.userId) {
       res.status(401);
-      next({
+      return next({
         error: "NOTAUTHORIZED",
         message: "You are not authorized to continue."
       });
@@ -270,7 +264,10 @@ exports.changeTopicColor = async (req, res, next) => {
 };
 exports.deleteTopic = async (req, res, next) => {
   try {
-    await Topic.delete(req.params.topic);
+    const topic = await Topic.findById(req.params.topic);
+    await Topic.delete(topic.id);
+
+    await User.removeFromPoints(topic.user_id, 50);
 
     res.json({ success: true });
   } catch (error) {
