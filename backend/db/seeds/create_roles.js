@@ -4,7 +4,7 @@ const roles = [
   { id: generateId(), title: "Member" },
   { id: generateId(), title: "Moderator" },
   { id: generateId(), title: "Admin" },
-  { id: generateId(), title: "Super Admin" }
+  { id: "d0abc273-ed64-11e8-aa98-e36e37c6bb49", title: "Owner" }
 ];
 
 exports.seed = function(knex, Promise) {
