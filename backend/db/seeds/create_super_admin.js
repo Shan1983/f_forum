@@ -1,5 +1,4 @@
 const { generateId, generateHash } = require("../../helpers/auth");
-const db = require("../index");
 
 const insertUser = [
   {
