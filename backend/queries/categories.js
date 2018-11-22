@@ -14,7 +14,7 @@ const schema = Joi.object().keys({
 module.exports = {
   async findAllCategories() {
     const categories = await db("categories").where("deleted", false);
-    return categories[0];
+    return categories;
   },
 
   async findById(id) {
