@@ -38,3 +38,14 @@ exports.categoryUpdateSchema = Joi.object().keys({
   description: Joi.string(),
   slug: Joi.string()
 });
+
+exports.topicCategorySchema = Joi.object().keys({
+  title: Joi.string().required()
+});
+
+exports.topicUpdateSchema = Joi.object().keys({
+  topic_color: Joi.string(),
+  title: Joi.string().required(),
+  slug: Joi.string().required(),
+  discussion: Joi.string().required()
+});
