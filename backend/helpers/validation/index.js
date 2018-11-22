@@ -49,3 +49,7 @@ exports.topicUpdateSchema = Joi.object().keys({
   slug: Joi.string().required(),
   discussion: Joi.string().required()
 });
+
+exports.replySchema = Joi.object().keys({
+  reply: Joi.string().required()
+});
