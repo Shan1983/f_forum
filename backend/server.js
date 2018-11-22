@@ -55,6 +55,7 @@ require("./services/authentication")(passport);
 // setup routes
 app.use("/api/v1/user", require("./router/users"));
 app.use("/api/v1/category", require("./router/categories"));
+app.use("/api/v1/topic", require("./router/topics"));
 
 // setup 404 handle
 app.use(notFound);
