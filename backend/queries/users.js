@@ -112,5 +112,29 @@ module.exports = {
       .first();
 
     return query;
+  },
+
+  async addToPostCount(id) {
+    const rows = await db("users")
+      .where("id", id)
+      .increment("post_count", 1);
+
+    return rows;
+  },
+
+  async addToPoints(id, points) {
+    const rows = await db("users")
+      .where("id", id)
+      .increment("points", points);
+
+    return rows;
+  },
+
+  async removeFromPoints(id, points) {
+    const rows = await db("users")
+      .where("id", id)
+      .decrement("points", points);
+
+    return rows;
   }
 };
