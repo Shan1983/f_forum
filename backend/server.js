@@ -56,6 +56,7 @@ require("./services/authentication")(passport);
 app.use("/api/v1/user", require("./router/users"));
 app.use("/api/v1/category", require("./router/categories"));
 app.use("/api/v1/topic", require("./router/topics"));
+app.use("/api/v1/reply", require("./router/replies"));
 
 // setup 404 handle
 app.use(notFound);
