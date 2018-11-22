@@ -20,6 +20,9 @@ exports.setupUserSession = async (req, username, userId, roleId, token) => {
   const role = await getRoleFromId(roleId);
 
   switch (role) {
+    case "Owner":
+      req.session.role = "Owner";
+      break;
     case "Admin":
       req.session.role = "Admin";
       break;
