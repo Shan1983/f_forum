@@ -1,7 +1,7 @@
 const Joi = require("joi");
 const db = require("../db");
 
-const { insertAndValidate, softDelete } = require("./index");
+const { insertAndValidate, softDelete, paginator } = require("./index");
 
 const schema = Joi.object().keys({
   id: Joi.string().required(),
@@ -17,18 +17,43 @@ const schema = Joi.object().keys({
 });
 
 module.exports = {
-  async findAllTopics(category) {
-    const query = db.raw(
+  async findAllTopicsPaginated(id, options) {
+    const query = await db.raw(
       `SELECT *
       FROM topics
       WHERE category_id = ?
       AND
       deleted = false
       ORDER BY created_at DESC`,
-      [category]
+      [id]
     );
 
-    return query;
+    const count = await db.raw(
+      `SELECT COUNT('id')
+      FROM topics
+      WHERE category_id = ?
+      AND
+      deleted = false`,
+      [id]
+    );
+
+    // const count = await db(options.table)
+    //   .where(options.delimiters, options.value)
+    //   .where("deleted", options.deleted)
+    //   .count("id");
+
+    // const query = await db(options.table)
+    //   .where(options.delimiters, options.value)
+    //   .where("deleted", options.deleted);
+
+    const paginate = {
+      req: options.req,
+      count: count.rows[0].count,
+      query: query.rows,
+      page: options.page || 1,
+      limit: options.limit || 15
+    };
+    return paginator(paginate);
   },
 
   async findById(id) {
@@ -36,7 +61,6 @@ module.exports = {
       .where("id", id)
       .where("deleted", false)
       .first();
-
     return query;
   },
 
@@ -58,11 +82,38 @@ module.exports = {
       .where("title", category)
       .where("deleted", false)
       .first();
+
+    return query;
   },
 
-  async findDeletedTopics() {
-    const topics = await db("topics").where("deleted", true);
-    return topics;
+  async findDeletedTopicsPaginated(id, options) {
+    const query = await db.raw(
+      `SELECT *
+      FROM topics
+      WHERE category_id = ?
+      AND
+      deleted = true
+      ORDER BY created_at DESC`,
+      [id]
+    );
+
+    const count = await db.raw(
+      `SELECT COUNT('id')
+      FROM topics
+      WHERE category_id = ?
+      AND
+      deleted = true`,
+      [id]
+    );
+
+    const paginate = {
+      req: options.req,
+      count: count.rows[0].count,
+      query: query.rows,
+      page: options.page || 1,
+      limit: options.limit || 15
+    };
+    return paginator(paginate);
   },
 
   async update(id, topic) {
@@ -78,5 +129,11 @@ module.exports = {
 
   async delete(id) {
     return softDelete("topics", id);
+  },
+
+  paginate(data, perPage) {
+    const pager = new Paginate(data);
+
+    return pager;
   }
 };
