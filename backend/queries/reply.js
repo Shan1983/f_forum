@@ -1,7 +1,7 @@
 const Joi = require("joi");
 const db = require("../db");
 
-const { insertAndValidate, softDelete } = require("./index");
+const { insertAndValidate, softDelete, paginator } = require("./index");
 
 const schema = Joi.object().keys({
   id: Joi.string().required(),
@@ -20,17 +20,36 @@ module.exports = {
     return query;
   },
 
-  async findByAllWithUser() {
-    const query = db.raw(
+  async findByAllWithUserAndPagination(id, options) {
+    const count = await db.raw(
+      `SELECT COUNT('id')
+      FROM topic_replies
+      WHERE topic_id = ?
+      AND
+      deleted = false`,
+      [id]
+    );
+
+    const query = await db.raw(
       `SELECT *
       FROM topic_replies
       LEFT JOIN users ON users.id = topic_replies.user_id
       LEFT JOIN roles AS r ON r.id = users.role_id
-      WHERE deleted = false`,
-      []
+      WHERE topic_id = ?
+      AND
+      topic_replies.deleted = false`,
+      [id]
     );
 
-    return query;
+    const paginate = {
+      req: options.req,
+      count: count.rows[0].count,
+      query: query.rows,
+      page: options.page || 1,
+      limit: options.limit || 15
+    };
+
+    return paginator(paginate);
   },
 
   async findDeletedReplies() {
@@ -39,7 +58,7 @@ module.exports = {
   },
 
   async update(id, topic_replies) {
-    const rows = await db("topic_repliess")
+    const rows = await db("topic_replies")
       .where("id", id)
       .update(topic_replies, "*");
     return rows[0];
