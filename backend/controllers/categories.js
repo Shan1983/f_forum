@@ -1,5 +1,5 @@
 const randomColor = require("randomcolor");
-const uuidv4 = require("uuid/v4");
+const moment = require("moment");
 const Joi = require("joi");
 const Category = require("../queries/categories");
 const {
@@ -13,26 +13,42 @@ const slugify = require("slugify");
 
 exports.getAllCategories = async (req, res, next) => {
   try {
+    const options = {
+      req,
+      page: req.query.page,
+      limit: req.query.limit
+    };
     // get all the categories
-    const categories = await Category.findAllCategories();
+    const categories = await Category.findAllCategories(options);
 
-    if (categories === undefined) {
-      res.status(400);
-      return next({
-        error: "CATEGORYERROR",
-        message: "The category does not exist."
-      });
-    }
+    // if (categories === undefined) {
+    //   res.status(400);
+    //   return next({
+    //     error: "CATEGORYERROR",
+    //     message: "The category does not exist."
+    //   });
+    // }
 
     // create category object
-    const categoryObj = {
-      title: categories.title,
-      slug: categories.slug,
-      description: categories.description,
-      icon_color: categories.icon_color,
-      created: categories.created_at
-    };
-    res.json(categoryObj);
+    const categoryObj = categories.data.map(c => {
+      return {
+        title: c.title,
+        slug: c.slug,
+        description: c.description,
+        icon_color: c.icon_color,
+        created: moment(c.created_at).fromNow()
+      };
+    });
+
+    res.json({
+      category: categoryObj,
+      meta: {
+        limit: categories.limit,
+        count: categories.count,
+        pageCount: categories.pageCount,
+        currentPage: categories.currentPage
+      }
+    });
   } catch (error) {
     res.status(400);
     next(error);
@@ -41,8 +57,11 @@ exports.getAllCategories = async (req, res, next) => {
 exports.getAllCategoryTopics = async (req, res, next) => {
   try {
     // get all the categories
-    const categories = await Category.findAllCategories();
+    const categories = await Category.findAllCategoryTopics(
+      req.params.category
+    );
 
+    console.log(categories);
     if (categories === undefined) {
       res.status(400);
       return next({
@@ -52,14 +71,16 @@ exports.getAllCategoryTopics = async (req, res, next) => {
     }
 
     // create category object
-    const categoryObj = {
-      title: categories.title,
-      slug: categories.slug,
-      description: categories.description,
-      icon_color: categories.icon_color,
-      created: categories.created_at,
-      topics: []
-    };
+    const categoryObj = categories.map(c => {
+      return {
+        title: c.title,
+        slug: c.slug,
+        description: c.description,
+        icon_color: c.icon_color,
+        created: c.created_at
+      };
+    });
+
     res.json(categoryObj);
   } catch (error) {
     res.status(400);
