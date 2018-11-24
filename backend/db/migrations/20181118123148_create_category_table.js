@@ -1,6 +1,6 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("categories", t => {
-    t.uuid("id").primary();
+    t.increments("id").primary();
     t.string("title")
       .notNullable()
       .unique();

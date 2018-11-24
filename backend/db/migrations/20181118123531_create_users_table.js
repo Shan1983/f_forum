@@ -1,6 +1,6 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("users", t => {
-    t.uuid("id").primary();
+    t.increments("id").primary();
     t.string("color_icon").defaultTo("#000");
     t.string("username").notNullable();
     t.string("email")
@@ -15,7 +15,7 @@ exports.up = function(knex, Promise) {
       .defaultTo(0);
     t.json("friends_id");
     t.boolean("banned").defaultTo(false);
-    t.uuid("role_id");
+    t.integer("role_id").defaultTo(1);
     t.string("avatar");
     t.string("token");
     t.boolean("verified").defaultTo(false);

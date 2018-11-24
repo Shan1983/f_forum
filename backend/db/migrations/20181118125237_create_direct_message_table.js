@@ -1,8 +1,8 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("direct_messages", t => {
-    t.uuid("id").primary();
-    t.uuid("sender_id").notNullable();
-    t.uuid("reciever_id").notNullable();
+    t.increments("id").primary();
+    t.integer("sender_id").notNullable();
+    t.integer("reciever_id").notNullable();
     t.text("message").notNullable();
     t.timestamps(true, true);
     t.boolean("deleted")

@@ -1,17 +1,19 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("topics", t => {
-    t.uuid("id").primary();
+    t.increments("id").primary();
     t.string("topic_color").defaultTo("#d2d2d2");
-    t.uuid("category_id")
+    t.integer("category_id")
       .notNullable()
       .index();
     t.string("title").notNullable();
     t.string("slug").notNullable();
-    t.uuid("user_id")
+    t.integer("user_id")
       .notNullable()
       .index();
     t.text("discussion").notNullable();
     t.boolean("sticky").defaultTo(false);
+    t.timestamp("sticky_ends");
+    t.enu("stick_duration", ["3", "7", "30", "forever"]);
     t.enu("lock", ["open", "closed"]).defaultTo("open");
     t.string("lock_reason");
     t.timestamps(true, true);

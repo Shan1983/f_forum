@@ -1,8 +1,8 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("topic_replies", t => {
-    t.uuid("id").primary();
-    t.uuid("topic_id").notNullable();
-    t.uuid("user_id").notNullable();
+    t.increments("id").primary();
+    t.integer("topic_id").notNullable();
+    t.integer("user_id").notNullable();
     t.text("reply").notNullable();
     t.timestamps(true, true);
     t.boolean("deleted")
