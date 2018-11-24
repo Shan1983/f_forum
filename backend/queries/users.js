@@ -1,7 +1,7 @@
 const Joi = require("joi");
 const db = require("../db");
 
-const { insertAndValidate, softDelete } = require("./index");
+const { insertAndValidate, softDelete, paginator } = require("./index");
 const { getRoleId } = require("../helpers/roles");
 
 const schema = Joi.object().keys({
@@ -21,31 +21,74 @@ const schema = Joi.object().keys({
 });
 
 module.exports = {
-  async findAllAdmins() {
-    const admins = await db("users")
-      .where("role_id", await getRoleId("Admin"))
-      .where("role_id", await getRoleId("Moderator"))
-      .where("deleted", false);
+  async findAllAdminsPaginated(options) {
+    // const count = await db(options.table)
+    //   .whereIn(options.delimiters, options.value)
+    //   .where("deleted", options.deleted)
+    //   .count();
 
-    if (admins.length <= 0) {
-      return [{ status: 200, message: "No Admin Users." }];
-    } else {
-      return admins;
-    }
+    // const query = await db(options.table)
+    //   .whereIn(options.delimiters, options.value)
+    //   .where("deleted", options.deleted);
+
+    const count = await db.raw(
+      `SELECT COUNT('id')
+      FROM users
+      WHERE role_id IN (2,3,4)
+      AND 
+      deleted = false
+      `,
+      []
+    );
+
+    const query = await db.raw(
+      `SELECT *
+      FROM users
+      WHERE role_id IN (2,3,4)
+      AND
+      deleted = false`,
+      []
+    );
+
+    const paginate = {
+      req: options.req,
+      count: count.rows[0].count,
+      query: query.rows,
+      page: options.page || 1,
+      limit: options.limit || 15
+    };
+    return paginator(paginate);
   },
 
-  async findAllUsers() {
-    const query = await db("users").where("deleted", false);
-    const user = query[0];
+  async findAllUsersPaginated(options) {
+    // const count = await db(options.table)
+    //   .where("deleted", options.deleted)
+    //   .count("id");
 
-    const userObj = {
-      color_icon: user.color_icon,
-      username: user.username,
-      email: user.email,
-      avatar: user.avatar
+    // const query = await db(options.table).where("deleted", options.deleted);
+
+    const count = await db.raw(
+      `SELECT COUNT('id')
+      FROM users
+      WHERE deleted = false`,
+      []
+    );
+
+    const query = await db.raw(
+      `SELECT *
+      FROM users
+      WHERE deleted = false`,
+      []
+    );
+
+    const paginate = {
+      req: options.req,
+      count: count.rows[0].count,
+      query: query.rows,
+      page: options.page || 1,
+      limit: options.limit || 15
     };
-
-    return userObj;
+    return paginator(paginate);
   },
 
   async findByEmail(email) {
