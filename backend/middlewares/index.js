@@ -18,6 +18,18 @@ exports.log = (req, res, next) => {
 exports.notFound = (req, res, next) => {
   const error = new Error(`Not Found - ${req.originalUrl}`);
   res.status(404);
+
+  const logError = {
+    ip: req.ip,
+    user: req.session.userId || "N/A",
+    status: res.statusCode,
+    method: req.method,
+    url: req.originalUrl,
+    level: "error",
+    message: error
+  };
+
+  errorLog.error(logError);
   next(error);
 };
 
@@ -78,7 +90,7 @@ exports.isAuthenticated = (req, res, next) => {
 };
 
 exports.admin = (req, res, next) => {
-  if (req.session.role === "Admin" || req.session.role === "Super Admin") {
+  if (req.session.role === "Admin" || req.session.role === "Owner") {
     next();
   } else {
     res.status(401);
