@@ -13,17 +13,33 @@ const moment = require("moment");
 
 exports.allCategoryTopics = async (req, res, next) => {
   try {
-    const topics = await Topic.findAllTopics(req.params.category);
+    // create option Obj for pagination
+    const options = {
+      req,
+      page: req.query.page,
+      limit: req.query.limit
+    };
+    const topics = await Topic.findAllTopicsPaginated(
+      req.params.category,
+      options
+    );
 
-    if (topics.rows.length <= 0) {
-      res.status(400);
-      return next({
-        error: "NOTOPICS",
-        message: `Currently no topics.`
-      });
+    // console.log(topics);
+
+    // if (topics.data.length <= 0) {
+    //   res.status(400);
+    //   return next({
+    //     error: "NOTOPICS",
+    //     message: `Currently no topics.`
+    //   });
+    // }
+
+    if (topics.data === undefined) {
+      res.status(404);
+      return next();
     }
 
-    const topicsObj = topics.rows.map(t => {
+    const topicsObj = topics.data.map(t => {
       return {
         color: t.topic_color,
         title: t.title,
@@ -33,7 +49,15 @@ exports.allCategoryTopics = async (req, res, next) => {
       };
     });
 
-    res.json(topicsObj);
+    res.json({
+      topics: topicsObj,
+      meta: {
+        limit: topics.limit,
+        count: topics.count,
+        pageCount: topics.pageCount,
+        currentPage: topics.currentPage
+      }
+    });
   } catch (error) {
     res.status(400);
     next(error);
@@ -42,8 +66,6 @@ exports.allCategoryTopics = async (req, res, next) => {
 exports.getTopic = async (req, res, next) => {
   try {
     const topic = await Topic.findByIdWithUser(req.params.id);
-
-    console.log(topic);
 
     if (topic.rows.length <= 0) {
       res.status(404);
@@ -54,6 +76,14 @@ exports.getTopic = async (req, res, next) => {
     }
 
     const t = topic.rows[0];
+
+    if (t.lock === "closed") {
+      res.status(403);
+      return next({
+        error: "TOPICLOCKED",
+        message: "Topic is locked."
+      });
+    }
 
     const topicObj = {
       topic_color: t.topic_color,
@@ -80,14 +110,29 @@ exports.getTopic = async (req, res, next) => {
 };
 exports.getDeletedTopics = async (req, res, next) => {
   try {
-    const topics = await Topic.findDeletedTopics();
+    // create option Obj for pagination
+    const options = {
+      req,
+      page: req.query.page,
+      limit: req.query.limit,
+      deleted: true
+    };
+    const topics = await Topic.findDeletedTopicsPaginated(
+      req.params.category,
+      options
+    );
 
-    if (topics === undefined) {
+    // if (topics.length <= 0) {
+    //   res.status(404);
+    //   return next({
+    //     error: "NOTFOUND",
+    //     message: "No deleted topics found."
+    //   });
+    // }
+
+    if (topics.data === undefined) {
       res.status(404);
-      return next({
-        error: "NOTFOUND",
-        message: "No deleted topics found."
-      });
+      return next();
     }
 
     res.json(topics);
@@ -133,6 +178,7 @@ exports.lockTopic = async (req, res, next) => {
 
     // update the topics lock status
     topic.lock = "closed";
+    topic.lock_reason = req.body.reason;
     await Topic.update(topic.id, topic);
 
     res.json({ success: true, topic });
@@ -152,6 +198,12 @@ exports.makeTopicSticky = async (req, res, next) => {
 
     // update the topics sticky status
     topic.sticky = true;
+    if (req.body.sticky_duration !== "forever") {
+      topic.sticky_ends = moment(new Date()).add(
+        req.body.sticky_duration,
+        "days"
+      );
+    }
     await Topic.update(topic.id, topic);
 
     res.json({ success: true, topic });
@@ -179,9 +231,9 @@ exports.moveTopic = async (req, res, next) => {
       });
     }
 
-    const categoryId = await Topic.getCategoryId(req.body.title);
+    const categoryId = await Topic.getCategoryId(req.body.title.toUpperCase());
 
-    topic.category_id = categoryId;
+    topic.category_id = categoryId.id;
 
     await Topic.update(topic.id, topic);
 
@@ -225,9 +277,9 @@ exports.editTopic = async (req, res, next) => {
       discussion: req.body.discussion
     };
 
-    await Topic.update(topic.id, editTopic);
+    const updated = await Topic.update(topic.id, editTopic);
 
-    res.json({ success: true, topic });
+    res.json({ success: true, updated });
   } catch (error) {
     res.status(400);
     next(error);
