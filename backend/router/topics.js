@@ -13,7 +13,7 @@ router.get(
 );
 router.get("/:id", isAuthenticated, log, controller.getTopic);
 router.get(
-  "/:category/topics/deleted",
+  "/:category/deleted",
   isAuthenticated,
   staff,
   log,
