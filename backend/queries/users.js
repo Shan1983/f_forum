@@ -5,16 +5,12 @@ const { insertAndValidate, softDelete, paginator } = require("./index");
 const { getRoleId } = require("../helpers/roles");
 
 const schema = Joi.object().keys({
-  id: Joi.string().required(),
   username: Joi.string().required(),
   email: Joi.string()
     .email()
     .required(),
   hash: Joi.string().required(),
   avatar: Joi.string(),
-  role_id: Joi.string().guid({
-    version: ["uuidv1"]
-  }),
   color_icon: Joi.string(),
   token: Joi.string(),
   verified: Joi.boolean()

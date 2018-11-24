@@ -4,8 +4,7 @@ const Joi = require("joi");
 const { insertAndValidate } = require("./index");
 
 const schema = Joi.object().keys({
-  id: Joi.string().required(),
-  user_id: Joi.string(),
+  user_id: Joi.number().integer(),
   ip: Joi.string()
     .ip({
       version: ["ipv4", "ipv6"],

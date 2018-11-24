@@ -4,9 +4,8 @@ const db = require("../db");
 const { insertAndValidate, softDelete, paginator } = require("./index");
 
 const schema = Joi.object().keys({
-  id: Joi.string().required(),
-  topic_id: Joi.string().required(),
-  user_id: Joi.string().required(),
+  topic_id: Joi.number().integer(),
+  user_id: Joi.number().integer(),
   reply: Joi.string().required()
 });
 

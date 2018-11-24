@@ -4,12 +4,15 @@ const db = require("../db");
 const { insertAndValidate, softDelete, paginator } = require("./index");
 
 const schema = Joi.object().keys({
-  id: Joi.string().required(),
   topic_color: Joi.string(),
-  category_id: Joi.string().required(),
+  category_id: Joi.number()
+    .integer()
+    .required(),
   title: Joi.string().required(),
   slug: Joi.string().required(),
-  user_id: Joi.string().required(),
+  user_id: Joi.number()
+    .integer()
+    .required(),
   discussion: Joi.string().required(),
   sticky: Joi.boolean(),
   lock: Joi.string(),
