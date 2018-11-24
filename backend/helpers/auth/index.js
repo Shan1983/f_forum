@@ -3,9 +3,9 @@ const bycrypt = require("bcryptjs");
 const Cookie = require("js-cookie");
 const { getRoleFromId } = require("../roles");
 
-exports.generateId = () => {
-  return uuidv1();
-};
+// exports.generateId = () => {
+//   return uuidv1();
+// };
 
 exports.generateHash = password => {
   return bycrypt.hashSync(password, 10);
