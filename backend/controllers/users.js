@@ -10,6 +10,7 @@ const {
 } = require("../helpers/auth");
 const { getRoleId, getRoleFromId } = require("../helpers/roles");
 const User = require("../queries/users");
+const Ip = require("../queries/ips");
 const { signToken } = require("../helpers/tokens");
 const {
   updatePasswordSchema,
@@ -19,18 +20,55 @@ const {
 
 exports.getAll = async (req, res, next) => {
   try {
-    const users = await User.findAllUsers();
+    // pagination options
+    const options = {
+      req,
+      page: req.query.page,
+      limit: req.query.limit
+    };
 
-    // validate if we found a user
-    if (!users) {
-      res.status(400);
+    const users = await User.findAllUsersPaginated(options);
+
+    if (users.data === undefined) {
+      res.status(404);
       return next({
-        error: "NOUSERS",
-        message: `Currently they're no users.`
+        error: "NOTFOUND",
+        message: `Not Found - ${req.originalUrl}`
       });
     }
 
-    res.json(users);
+    const userObj = users.data.map(async u => {
+      return {
+        id: u.id,
+        color: u.color_icon,
+        username: u.username,
+        pcount: u.post_count,
+        points: u.points,
+        role: await getRoleFromId(u.role_id),
+        avatar: u.avatar,
+        created: moment(u.created_at).fromNow()
+      };
+    });
+
+    Promise.all(userObj).then(response => {
+      res.json({
+        users: response,
+        meta: {
+          limit: users.limit,
+          count: users.count,
+          pageCount: users.pageCount,
+          currentPage: users.currentPage
+        }
+      });
+    });
+    // validate if we found a user
+    // if (!users) {
+    //   res.status(400);
+    //   return next({
+    //     error: "NOUSERS",
+    //     message: `Currently they're no users.`
+    //   });
+    // }
   } catch (error) {
     res.status(400);
     next(error);
@@ -39,10 +77,46 @@ exports.getAll = async (req, res, next) => {
 
 exports.getAllAdmins = async (req, res, next) => {
   try {
-    const query = await User.findAllAdmins();
-    const admins = query[0];
+    // pagination options
+    const options = {
+      req,
+      page: req.query.page,
+      limit: req.query.limit
+    };
 
-    res.json(admins);
+    const users = await User.findAllAdminsPaginated(options);
+
+    if (users.data === undefined) {
+      res.status(404);
+      return next({
+        error: "NOTFOUND",
+        message: `Not Found - ${req.originalUrl}`
+      });
+    }
+
+    const userObj = users.data.map(async u => {
+      return {
+        id: u.id,
+        color: u.color_icon,
+        username: u.username,
+        pcount: u.post_count,
+        points: u.points,
+        avatar: u.avatar,
+        created: moment(u.created_at).fromNow()
+      };
+    });
+
+    Promise.all(userObj).then(response => {
+      res.json({
+        users: response,
+        meta: {
+          limit: users.limit,
+          count: users.count,
+          pageCount: users.pageCount,
+          currentPage: users.currentPage
+        }
+      });
+    });
   } catch (error) {
     res.status(400);
     next(error);
@@ -241,6 +315,15 @@ exports.login = async (req, res, next) => {
       });
     }
 
+    if (!query.verified) {
+      res.status(403);
+      return next({
+        error: "NOTVERIFIED",
+        message:
+          "Please go to your email address and follow the instructiosn in order to verify your account."
+      });
+    }
+
     // check user is banned
     if (query.banned) {
       res.status(401);
@@ -327,6 +410,11 @@ exports.register = async (req, res, next) => {
     }
 
     const result = await User.insert(user);
+    await Ip.insert({
+      id: generateId(),
+      user_id: user.id,
+      ip: req.ip
+    });
 
     res.json(result);
   } catch (error) {
