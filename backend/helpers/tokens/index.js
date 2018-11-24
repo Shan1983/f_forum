@@ -10,7 +10,7 @@ exports.signToken = async user => {
     role: await getRoleFromId(user.role_id)
   };
 
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "2h" });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "6h" });
 };
 
 exports.verifyToken = token => {
