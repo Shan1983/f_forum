@@ -3,11 +3,7 @@ const bcrypt = require("bcryptjs");
 const uuidv4 = require("uuid/v4");
 const moment = require("moment");
 const Joi = require("joi");
-const {
-  generateId,
-  generateHash,
-  setupUserSession
-} = require("../helpers/auth");
+const { generateHash, setupUserSession } = require("../helpers/auth");
 const { getRoleId, getRoleFromId } = require("../helpers/roles");
 const User = require("../queries/users");
 const Ip = require("../queries/ips");
@@ -384,12 +380,11 @@ exports.register = async (req, res, next) => {
     }
 
     const user = {
-      id: generateId(),
       color_icon: randomColor(),
       username: req.body.username,
       email: req.body.email,
       hash: generateHash(req.body.password),
-      role_id: await getRoleId("Member"),
+      role_id: 1,
       token: uuidv4()
     };
 
@@ -411,7 +406,6 @@ exports.register = async (req, res, next) => {
 
     const result = await User.insert(user);
     await Ip.insert({
-      id: generateId(),
       user_id: user.id,
       ip: req.ip
     });
@@ -650,13 +644,13 @@ exports.privileges = async (req, res, next) => {
       res.status(400);
       return next({
         error: "PRIVILEGESERROR",
-        message: `You can't update a user to same role.`
+        message: `You can't update/down grade a user to same role.`
       });
     }
 
     const newRole = await getRoleId(req.body.role);
 
-    if (newRole === undefined || newRole === "Super Admin") {
+    if (newRole === undefined || newRole === "Owner") {
       res.status(400);
       return next({ error: "ROLEERROR", message: "Unknown role" });
     }
