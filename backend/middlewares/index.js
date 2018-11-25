@@ -89,6 +89,18 @@ exports.isAuthenticated = (req, res, next) => {
   })(req, res, next);
 };
 
+exports.owner = (req, res, next) => {
+  if (req.session.role === "Owner") {
+    next();
+  } else {
+    res.status(401);
+    next({
+      error: "NOTAUTHORIZED",
+      message: "You are not authorized to continue."
+    });
+  }
+};
+
 exports.admin = (req, res, next) => {
   if (req.session.role === "Admin" || req.session.role === "Owner") {
     next();
