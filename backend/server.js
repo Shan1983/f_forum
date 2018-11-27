@@ -57,6 +57,9 @@ app.use("/api/v1/user", require("./router/users"));
 app.use("/api/v1/category", require("./router/categories"));
 app.use("/api/v1/topic", require("./router/topics"));
 app.use("/api/v1/reply", require("./router/replies"));
+app.use("/api/v1/friend", require("./router/friends"));
+app.use("/api/v1/report", require("./router/reports"));
+app.use("/api/v1/penalty", require("./router/penalty"));
 
 // setup 404 handle
 app.use(notFound);
