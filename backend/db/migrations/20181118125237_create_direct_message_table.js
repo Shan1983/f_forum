@@ -10,8 +10,8 @@ exports.up = function(knex, Promise) {
       .notNullable();
     t.timestamp("deleted_at");
 
-    t.foreign("sender_id").references("users.id");
-    t.foreign("reciever_id").references("users.id");
+    // t.foreign("sender_id").references("users.id");
+    // t.foreign("reciever_id").references("users.id");
   });
 };
 

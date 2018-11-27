@@ -3,11 +3,11 @@ const randomColor = require("randomcolor");
 
 let replies = [];
 
-for (let i = 0; i <= 100; i++) {
+for (let i = 1; i <= 101; i++) {
   replies.push({
     id: i,
-    topic_id: Math.floor(Math.random() * 20) || 1,
-    user_id: Math.floor(Math.random() * 16),
+    topic_id: Math.floor(Math.random() * 21) || 1,
+    user_id: Math.floor(Math.random() * 17) || 19,
     reply: faker.lorem.sentences(7)
   });
 }

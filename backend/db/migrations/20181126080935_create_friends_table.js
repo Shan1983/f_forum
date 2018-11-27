@@ -1,9 +1,12 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("friends", t => {
     t.increments("id").primary();
-    t.integer("pending_request");
-    t.integer("user_id").index();
-    t.integer("accepting_friend");
+    t.string("reciever");
+    t.integer("reciever_id");
+    t.string("sender").index();
+    t.integer("sender_id").index();
+    t.boolean("pending").defaultTo(false);
+    t.boolean("accepted").defaultTo(false);
     t.timestamps(true, true);
     t.boolean("deleted").defaultTo(false);
     t.timestamp("deleted_at");

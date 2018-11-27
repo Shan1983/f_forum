@@ -17,8 +17,8 @@ exports.seed = function(knex, Promise) {
         },
         {
           id: 2,
-          title: "JS",
-          slug: slug("JS"),
+          title: "Javascript",
+          slug: slug("Javascript"),
           description: "Js Category",
           icon_color: randomColor()
         },

@@ -13,7 +13,7 @@ exports.up = function(knex, Promise) {
     t.integer("points")
       .unsigned()
       .defaultTo(0);
-    t.json("friends_id");
+    t.integer("friends_id");
     t.boolean("banned").defaultTo(false);
     t.integer("role_id").defaultTo(1);
     t.string("avatar");
@@ -29,7 +29,7 @@ exports.up = function(knex, Promise) {
       .notNullable();
     t.timestamp("deleted_at");
 
-    t.foreign("role_id").references("roles.id");
+    // t.foreign("role_id").references("roles.id");
   });
 };
 

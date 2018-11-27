@@ -1,7 +1,9 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("reports", t => {
     t.increments("id").primary();
-    t.integer("issue_id");
+    t.integer("user_id");
+    t.integer("topic_reply_id");
+    t.string("comment");
     t.enu("reason", [
       "Spam",
       "Inappropriate",

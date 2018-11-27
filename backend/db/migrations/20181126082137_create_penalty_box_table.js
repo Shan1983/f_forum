@@ -2,7 +2,7 @@ exports.up = function(knex, Promise) {
   return knex.schema.createTable("penaltyBoxes", t => {
     t.increments("id").primary();
     t.integer("user_id").index();
-    t.integer("duration");
+    t.string("reason");
     t.timestamp("release_date");
     t.timestamps(true, true);
     t.boolean("deleted");

@@ -4,7 +4,7 @@ const { generateHash } = require("../../helpers/auth");
 
 let users = [];
 
-for (let i = 0; i <= 15; i++) {
+for (let i = 1; i <= 16; i++) {
   users.push({
     id: i,
     color_icon: randomColor(),
@@ -16,7 +16,7 @@ for (let i = 0; i <= 15; i++) {
 }
 
 users.push({
-  id: 16,
+  id: 17,
   color_icon: randomColor(),
   username: "Shan",
   email: "test@test.com",
@@ -24,7 +24,7 @@ users.push({
   role_id: 4
 });
 users.push({
-  id: 17,
+  id: 18,
   color_icon: randomColor(),
   username: "admin",
   email: "admin@test.com",
@@ -32,7 +32,7 @@ users.push({
   role_id: 3
 });
 users.push({
-  id: 18,
+  id: 19,
   color_icon: randomColor(),
   username: "moderator",
   email: "moderator@test.com",
