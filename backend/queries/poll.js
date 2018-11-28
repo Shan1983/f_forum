@@ -1,12 +1,8 @@
-const Joi = require("joi");
-const moment = require("moment");
 const db = require("../db");
 const { paginator, softDelete } = require("./index");
 
-const schema = Joi.object().keys({});
-
 module.exports = {
-  async findById(id, options) {
+  async findById(id) {
     const query = await db.raw(
       `SELECT * 
         FROM poll_questions
@@ -21,10 +17,10 @@ module.exports = {
     return query;
   },
 
-  async getAll(id, options) {
+  async getAll(options) {
     const count = await db.raw(
-      `SELECT COUNT ('id) FROM poll_questions WHERE id = ? AND deleted = false`,
-      [id]
+      `SELECT COUNT ('id') FROM poll_questions WHERE deleted = false`,
+      []
     );
     const query = await db.raw(
       `SELECT *
