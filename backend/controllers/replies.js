@@ -84,6 +84,8 @@ exports.postreply = async (req, res, next) => {
     await User.addToPostCount(replyObj.user_id);
     await User.addToPoints(replyObj.user_id, 20);
 
+    // emit sub email event
+
     res.json({ success: true, reply });
   } catch (error) {
     res.status(400);
