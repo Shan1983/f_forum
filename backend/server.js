@@ -79,6 +79,9 @@ app.listen(process.env.PORT, () => {
   };
 
   logger.info(args);
+
+  const { rewardSetup } = require("./helpers/rewards");
+  rewardSetup(app);
 });
 
 module.exports = app;
