@@ -60,6 +60,9 @@ app.use("/api/v1/reply", require("./router/replies"));
 app.use("/api/v1/friend", require("./router/friends"));
 app.use("/api/v1/report", require("./router/reports"));
 app.use("/api/v1/penalty", require("./router/penalty"));
+app.use("/api/v1/subscription", require("./router/subscriptions"));
+app.use("/api/v1/like", require("./router/likes"));
+app.use("/api/v1/reward", require("./router/rewards"));
 
 // setup 404 handle
 app.use(notFound);
