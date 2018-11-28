@@ -3,8 +3,8 @@ exports.up = function(knex, Promise) {
     t.increments("id").primary();
     t.integer("topic_id");
     t.integer("user_id");
-    t.timestamps(true, true);
     t.boolean("mute").defaultTo(false);
+    t.timestamps(true, true);
   });
 };
 
