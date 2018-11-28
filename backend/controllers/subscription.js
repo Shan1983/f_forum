@@ -11,7 +11,7 @@ exports.getUserSubs = async (req, res, next) => {
       next();
     }
 
-    const subsObj = userSub.rows.map(s => {
+    const subsObj = userSub.rows.map(async s => {
       const topic = await Topic.findById(s.topic_id);
       return {
         id: s.id,
