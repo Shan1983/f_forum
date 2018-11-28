@@ -1,6 +1,7 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("poll_questions", t => {
     t.increments("id").primary();
+    t.integer("topic_id").notNullable();
     t.string("question");
     t.integer("user_id");
     t.boolean("active");
