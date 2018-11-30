@@ -158,11 +158,8 @@ exports.getProfile = async (req, res, next) => {
 
     // validate if we found a user
     if (!users) {
-      res.status(400);
-      return next({
-        error: "ACCOUNTNOTEXISTS",
-        message: `This account does not exist.`
-      });
+      res.status(404);
+      return next();
     }
 
     // get other stuff <<coming soon>>
