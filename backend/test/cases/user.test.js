@@ -10,6 +10,7 @@ chai.use(require("chai-http"));
 chai.use(require("chai-things"));
 
 const { setupTestDb, DbCleanup } = require("../helpers/dbSetup");
+const { login, register } = require("../helpers/users");
 
 describe("USER ROUTES", () => {
   beforeEach(async done => {
