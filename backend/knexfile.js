@@ -16,19 +16,17 @@ module.exports = {
     }
   },
 
-  staging: {
-    client: "postgresql",
+  test: {
+    client: "pg",
     connection: {
-      database: "my_db",
-      user: "username",
-      password: "password"
-    },
-    pool: {
-      min: 2,
-      max: 10
+      database: "f_forum_test",
+      host: "localhost"
     },
     migrations: {
-      tableName: "knex_migrations"
+      directory: "./db/migrations"
+    },
+    seeds: {
+      directory: "./db/seeds"
     }
   },
 
