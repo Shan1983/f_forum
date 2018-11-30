@@ -9,7 +9,7 @@ const expect = chai.expect;
 chai.use(require("chai-http"));
 chai.use(require("chai-things"));
 
-const { setupTestDb, DbCleanup } = require("../test-helpers");
+const { setupTestDb, DbCleanup } = require("../helpers/dbSetup");
 
 describe("USER ROUTES", () => {
   beforeEach(async done => {
