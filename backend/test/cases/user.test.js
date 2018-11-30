@@ -70,10 +70,10 @@ describe("USER ROUTES", () => {
     describe("LogOut", () => {
       it("should log a user out");
     });
-    describe("Upload avatar - Auth", () => {
+    describe("Upload Avatar - Auth", () => {
       it("should upload a users avatar");
     });
-    describe("Close user account", () => {
+    describe("Close User Account - Auth | Admin", () => {
       it("should close a users account");
       it("should return 400 if account not exists");
       it("should return 400 if account is admin");
@@ -82,7 +82,7 @@ describe("USER ROUTES", () => {
       it("should send a reset request");
       it("should return 400 if user not exist");
     });
-    describe("User Privileges", () => {
+    describe("User Privileges - Auth | Admin", () => {
       it("should update a users privileges");
       it("should return 400 if user not exists");
       it("should return 400 if changing to same role");
@@ -90,19 +90,19 @@ describe("USER ROUTES", () => {
     });
   });
   describe("PUT", () => {
-    describe("Update User Email", () => {
+    describe("Update User Email - Auth", () => {
       it("should update a users email address");
       it("should return 400 if user not exists");
       it("should return 401 if user not account owner");
       it("should return 400 if validation fails");
     });
-    describe("Update A Users Account Options", () => {
+    describe("Update A Users Account Options - Auth", () => {
       it("should update a users account options");
       it("should return 400 if user not exists");
       it("should return 401 if user not account owner");
       it("should return 400 if validation fails");
     });
-    describe("Update A Users Password", () => {
+    describe("Update A Users Password - Auth", () => {
       it("should update a users password");
       it("should return 400 if user not exists");
       it("should return 401 if user not account owner");
