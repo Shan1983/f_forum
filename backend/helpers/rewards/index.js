@@ -1,9 +1,9 @@
 const Reward = require("../../queries/rewards");
 const { logger, errorLog } = require("../logging");
 
-exports.rewardSetup = async app => {
+exports.rewardSetup = app => {
   try {
-    const reward = await Reward.loadInitialRewards();
+    const reward = Reward.loadInitialRewards();
 
     app.locals.reply = reward.reply;
     app.locals.topic = reward.topic;
