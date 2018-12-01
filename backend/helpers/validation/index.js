@@ -22,7 +22,8 @@ exports.registerSchema = Joi.object().keys({
   email: Joi.string()
     .email()
     .required(),
-  password: Joi.string().required()
+  password: Joi.string().required(),
+  role_id: Joi.number().integer()
 });
 
 exports.categorySchema = Joi.object().keys({
