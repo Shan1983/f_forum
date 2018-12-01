@@ -1,8 +1,49 @@
 const faker = require("faker");
 const { generateHash } = require("../../helpers/auth");
 
-exports.login = request => {
+exports.login = async (agent, data, type = null) => {
   // log in a user
+  let user;
+  switch (type) {
+    case "Mod":
+      user = await agent
+        .post("/api/v1/user/login")
+        .set("content-type", "application/json")
+        .send({
+          email: "moderator@test.com",
+          password: "test123"
+        });
+      break;
+    case "Admin":
+      user = await agent
+        .post("/api/v1/user/login")
+        .set("content-type", "application/json")
+        .send({
+          email: "admin@test.com",
+          password: "test123"
+        });
+      break;
+    case "Owner":
+      user = await agent
+        .post("/api/v1/user/login")
+        .set("content-type", "application/json")
+        .send({
+          email: "test@test.com",
+          password: "test123"
+        });
+      break;
+    default:
+      user = await agent
+        .post("/api/v1/user/login")
+        .set("content-type", "application/json")
+        .send({
+          email: data.email,
+          password: data.password
+        });
+      break;
+  }
+
+  return user;
 };
 
 exports.register = async agent => {
