@@ -13,7 +13,8 @@ const schema = Joi.object().keys({
   avatar: Joi.string(),
   color_icon: Joi.string(),
   token: Joi.string(),
-  verified: Joi.boolean()
+  verified: Joi.boolean(),
+  role_id: Joi.number().integer()
 });
 
 module.exports = {
