@@ -125,7 +125,14 @@ describe("USER ROUTES", () => {
       });
     });
     describe("LogOut", () => {
-      it("should log a user out");
+      it("should log a user out", async () => {
+        const logout = await agent
+          .post("/api/v1/user/logout")
+          .set("content-type", "application/json");
+
+        logout.should.have.status(200);
+        logout.body.should.have.property("success", true);
+      });
     });
     describe("Upload Avatar - Auth", () => {
       it("should upload a users avatar");
