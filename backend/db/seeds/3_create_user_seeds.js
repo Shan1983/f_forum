@@ -6,7 +6,6 @@ let users = [];
 
 for (let i = 1; i <= 16; i++) {
   users.push({
-    id: i,
     color_icon: randomColor(),
     username: faker.internet.userName(),
     email: faker.internet.email(),
@@ -16,7 +15,6 @@ for (let i = 1; i <= 16; i++) {
 }
 
 users.push({
-  id: 17,
   color_icon: randomColor(),
   username: "Shan",
   email: "test@test.com",
@@ -24,7 +22,6 @@ users.push({
   role_id: 4
 });
 users.push({
-  id: 18,
   color_icon: randomColor(),
   username: "admin",
   email: "admin@test.com",
@@ -32,12 +29,19 @@ users.push({
   role_id: 3
 });
 users.push({
-  id: 19,
   color_icon: randomColor(),
   username: "moderator",
   email: "moderator@test.com",
   hash: generateHash("test123"),
   role_id: 2
+});
+users.push({
+  color_icon: randomColor(),
+  username: "mr. Banned",
+  email: "banned@test.com",
+  hash: generateHash("test123"),
+  role_id: 1,
+  banned: true
 });
 
 exports.seed = function(knex, Promise) {
