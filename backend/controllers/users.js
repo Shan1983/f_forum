@@ -302,6 +302,7 @@ exports.login = async (req, res, next) => {
 
     if (!query) {
       res.status(403);
+
       return next({
         error: "LOGINERROR",
         message: "The email or password provided was incorrect."
@@ -313,7 +314,7 @@ exports.login = async (req, res, next) => {
       return next({
         error: "NOTVERIFIED",
         message:
-          "Please go to your email address and follow the instructiosn in order to verify your account."
+          "Please go to your email address and follow the instructions in order to verify your account."
       });
     }
 
@@ -340,11 +341,8 @@ exports.login = async (req, res, next) => {
       );
 
       const userObj = {
-        id: query.id,
-        color: query.color_icon,
         username: query.username,
         email: query.email,
-        role: await getRoleFromId(query.role_id),
         created_at: query.created_at,
         token
       };
