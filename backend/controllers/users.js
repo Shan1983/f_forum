@@ -401,13 +401,13 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    const result = await User.insert(user);
+    await User.insert(user);
     await Ip.insert({
       user_id: user.id,
       ip: req.ip
     });
 
-    res.json(result);
+    res.json({ success: true });
   } catch (error) {
     res.status(400);
     next(error);
