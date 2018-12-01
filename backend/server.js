@@ -14,6 +14,7 @@ const KnexSessionStoreFactory = require("connect-session-knex");
 const KnexSessionStore = KnexSessionStoreFactory(session);
 const db = require("./db");
 
+const { rewardSetup } = require("./helpers/rewards");
 const { notFound, errorHandler } = require("./middlewares");
 
 const app = express();
@@ -71,18 +72,35 @@ app.use(notFound);
 // setup error handling
 app.use(errorHandler);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Listening on port ${process.env.PORT}`);
+const init = async (port, args) => {
+  try {
+    const r = await rewardSetup(app);
+    console.log("rewards ready:", r);
+    app.listen(port, () => {
+      console.log(`Listening on port ${port}`);
+
+      logger.info(args);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+if (process.env.NODE_ENV === "test") {
+  const port = 8888;
+  const args = {
+    status: "Ok",
+    level: "info",
+    message: "==[ TEST STARTED ]=="
+  };
+  init(port, args);
+} else {
   const args = {
     status: "Ok",
     level: "info",
     message: "==[ f_forum started ]=="
   };
-
-  logger.info(args);
-
-  const { rewardSetup } = require("./helpers/rewards");
-  rewardSetup(app);
-});
+  init(process.env.PORT, args);
+}
 
 module.exports = app;
