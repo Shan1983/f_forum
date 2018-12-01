@@ -89,10 +89,16 @@ module.exports = {
   },
 
   async findByEmail(email) {
-    const query = await db("users")
-      .where("email", email)
-      .where("deleted", false);
-    return query[0];
+    // const query = await db("users")
+    //   .where("email", email)
+    //   .where("deleted", false);
+
+    const query = await db.raw(
+      `SELECT * FROM users WHERE email = ? AND deleted = false`,
+      [email]
+    );
+
+    return query.rows[0];
   },
 
   // use this only when absolutely needed
