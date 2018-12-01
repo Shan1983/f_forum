@@ -55,10 +55,34 @@ describe("USER ROUTES", () => {
   });
   describe("POST", () => {
     describe("LogIn", () => {
-      it("should log a user in");
-      it("should refuse to log an intruder in");
-      it("should refuse to log an unverified user in");
-      it("should refuse to log a banned user in");
+      it("should log a user in", async () => {
+        const data = { email: "test@test.com", password: "test123" };
+        const user = await login(agent, data);
+
+        user.should.have.status(200);
+        user.body.should.have.property("token");
+      });
+      it("should refuse to log an intruder in", async () => {
+        const data = { email: "intruder@test.com", password: "donkeyKong_83" };
+        const user = await login(agent, data);
+
+        user.should.have.status(403);
+        user.body.should.have.property("error", "LOGINERROR");
+      });
+      it("should refuse to log an unverified user in", async () => {
+        const data = { email: "admin@test.com", password: "test123" };
+        const user = await login(agent, data);
+
+        user.should.have.status(403);
+        user.body.should.have.property("error", "NOTVERIFIED");
+      });
+      it("should refuse to log a banned user in", async () => {
+        const data = { email: "banned@test.com", password: "test123" };
+        const user = await login(agent, data);
+
+        user.should.have.status(401);
+        user.body.should.have.property("error", "BANNED");
+      });
     });
     describe("Register", () => {
       it("should register a new user", async () => {
