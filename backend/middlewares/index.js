@@ -48,7 +48,9 @@ exports.errorHandler = (err, req, res, next) => {
 
   errorLog.error(logError);
 
-  console.log(err);
+  if (process.env.NODE_ENV === "development") {
+    console.log(err);
+  }
 
   res.json({
     status: res.statusCode,
