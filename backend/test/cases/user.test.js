@@ -10,17 +10,16 @@ chai.use(require("chai-http"));
 chai.use(require("chai-things"));
 
 const { setupTestDb, DbCleanup } = require("../helpers/dbSetup");
-const { login, register } = require("../helpers/users");
+const { login, register, badRegistration } = require("../helpers/users");
+const agent = chai.request.agent(server);
 
 describe("USER ROUTES", () => {
-  beforeEach(async done => {
+  beforeEach(async () => {
     await setupTestDb(db);
-    done();
   });
 
-  afterEach(async done => {
+  afterEach(async () => {
     await DbCleanup(db);
-    done();
   });
 
   describe("GET", () => {
@@ -62,10 +61,44 @@ describe("USER ROUTES", () => {
       it("should refuse to log a banned user in");
     });
     describe("Register", () => {
-      it("should register a new user");
-      it("should refuse to register a user if validation fails");
-      it("should refuse to register a banned user");
-      it("should refuse to register if user already has account");
+      it("should register a new user", async () => {
+        const user = await register(agent);
+
+        user.should.have.status(200);
+        user.body.should.have.property("success", true);
+      });
+      it("should refuse to register a user if validation fails", async () => {
+        const data = {
+          username: "test",
+          password: "test"
+        };
+        const user = await badRegistration(agent, data);
+
+        user.should.have.status(400);
+        user.body.should.have.property("error", "VALIDATIONERROR");
+      });
+      it("should refuse to register a banned user", async () => {
+        const data = {
+          username: "test",
+          email: "banned@test.com",
+          password: "test"
+        };
+        const user = await badRegistration(agent, data);
+
+        user.should.have.status(400);
+        user.body.should.have.property("error", "BANNED");
+      });
+      it("should refuse to register if user already has account", async () => {
+        const data = {
+          username: "test",
+          email: "test@test.com",
+          password: "test"
+        };
+        const user = await badRegistration(agent, data);
+
+        user.should.have.status(400);
+        user.body.should.have.property("error", "ACCOUNTEXISTS");
+      });
     });
     describe("LogOut", () => {
       it("should log a user out");
