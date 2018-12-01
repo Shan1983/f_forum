@@ -1,7 +1,7 @@
 const db = require("../db");
 
 module.exports = {
-  async loadInitialRewards() {
+  loadInitialRewards() {
     return db("rewards").where("id", 1);
   },
 
