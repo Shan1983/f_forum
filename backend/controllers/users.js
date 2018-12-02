@@ -126,11 +126,11 @@ exports.getSingle = async (req, res, next) => {
     const user = await User.findByIdWithTopics(req.params.id);
 
     // validate if we found a user
-    if (!user) {
-      res.status(400);
+    if (user.length <= 0) {
+      res.status(404);
       return next({
-        error: "ACCOUNTNOTEXISTS",
-        message: `This account does not exist.`
+        error: "NOTFOUND",
+        message: `Not Found - ${req.originalUrl}`
       });
     }
 
