@@ -55,18 +55,30 @@ describe("USER ROUTES", () => {
         const user = await login(agent, {}, "Member");
 
         const token = `Bearer ${user.body.token}`;
-        const allUsers = await agent
+        const singleUser = await agent
           .get(`/api/v1/user/${user.body.id}`)
           .set("content-type", "application/json")
           .set("Authorization", token);
 
-        allUsers.should.have.status(200);
-        allUsers.body.should.have.property("users");
-        const keys = allUsers.body.users;
+        singleUser.should.have.status(200);
+        singleUser.body.should.have.property("users");
+        const keys = singleUser.body.users;
         keys.should.have.property("username").and.be.a("string");
         keys.should.have.property("topics").and.be.a("array");
       });
-      it("should return 400 if user not exists");
+      it("should return 404 if user not exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const singleUser = await agent
+          .get(`/api/v1/user/9999`)
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        singleUser.should.have.status(404);
+        singleUser.body.should.have.property("error");
+      });
     });
     describe("Get All Admin Users - Paginated | Auth | Admin", () => {
       it("should return a list of admin users");
