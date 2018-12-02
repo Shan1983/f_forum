@@ -22,20 +22,25 @@ users.push({
   verified: true,
   role_id: 4
 });
+
 users.push({
   color_icon: randomColor(),
   username: "admin",
   email: "admin@test.com",
   hash: generateHash("test123"),
-  role_id: 3
+  role_id: 3,
+  verified: true
 });
+
 users.push({
   color_icon: randomColor(),
   username: "moderator",
   email: "moderator@test.com",
   hash: generateHash("test123"),
-  role_id: 2
+  role_id: 2,
+  verified: true
 });
+
 users.push({
   color_icon: randomColor(),
   username: "mr. Banned",
@@ -44,6 +49,25 @@ users.push({
   role_id: 1,
   banned: true,
   verified: true
+});
+
+users.push({
+  color_icon: randomColor(),
+  username: "John Doe",
+  email: "member@test.com",
+  hash: generateHash("test123"),
+  role_id: 1,
+  banned: true,
+  verified: true
+});
+
+users.push({
+  color_icon: randomColor(),
+  username: "Not Verified",
+  email: "not.verified@test.com",
+  hash: generateHash("test123"),
+  role_id: 1,
+  banned: true
 });
 
 exports.seed = function(knex, Promise) {
