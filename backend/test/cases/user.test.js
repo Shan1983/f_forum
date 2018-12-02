@@ -22,11 +22,49 @@ describe("USER ROUTES", () => {
 
   describe("GET", () => {
     describe("Get All Users - Paginated | Auth | Staff", () => {
-      it("should display all non deleted users");
-      it("should return 404 if no users found.");
+      it("should display all non deleted users", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Mod");
+
+        const token = `Bearer ${user.body.token}`;
+        const allUsers = await agent
+          .get("/api/v1/user?page=1&limit=15")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        allUsers.should.have.status(200);
+        allUsers.body.should.have.property("meta");
+      });
+      it("should return 404 if no users found.", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Mod");
+
+        const token = `Bearer ${user.body.token}`;
+        const allUsers = await agent
+          .get("/api/v1/user?page=5&limit=15")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        allUsers.should.have.status(404);
+        allUsers.body.should.have.property("error");
+      });
     });
     describe("Get A Single User - Auth", () => {
-      it("should return a single user");
+      it("should return a single user", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const allUsers = await agent
+          .get(
+            `/api/v1/user/${Math.floor(Math.random() * Math.floor(20)) || 1}`
+          )
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        allUsers.should.have.status(200);
+        allUsers.body.should.have.property("error");
+      });
       it("should return 400 if user not exists");
     });
     describe("Get All Admin Users - Paginated | Auth | Admin", () => {
@@ -68,7 +106,7 @@ describe("USER ROUTES", () => {
         user.body.should.have.property("error", "LOGINERROR");
       });
       it("should refuse to log an unverified user in", async () => {
-        const data = { email: "admin@test.com", password: "test123" };
+        const data = { email: "not.verified@test.com", password: "test123" };
         const user = await login(getAgent(server), data);
 
         user.should.have.status(403);
