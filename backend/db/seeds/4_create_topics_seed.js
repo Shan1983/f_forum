@@ -3,15 +3,14 @@ const randomColor = require("randomcolor");
 
 let topics = [];
 
-for (let i = 1; i <= 21; i++) {
+for (let i = 1; i <= 50; i++) {
   let word = faker.lorem.word();
   topics.push({
-    id: i,
     topic_color: randomColor(),
-    category_id: Math.floor(Math.random() * 3) || 1,
+    category_id: Math.floor(Math.random() * 3) || 2,
     title: word,
     slug: word,
-    user_id: Math.floor(Math.random() * 17),
+    user_id: Math.floor(Math.random() * 22) || 17,
     discussion: faker.lorem.sentences(5)
   });
 }
