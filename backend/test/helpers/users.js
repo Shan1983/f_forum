@@ -1,6 +1,16 @@
+const chai = require("chai");
+const should = chai.should();
+const expect = chai.expect;
+
+chai.use(require("chai-http"));
+chai.use(require("chai-things"));
+
 const faker = require("faker");
 const { generateHash } = require("../../helpers/auth");
 
+exports.getAgent = server => {
+  return (agent = chai.request.agent(server));
+};
 exports.login = async (agent, data, type = null) => {
   // log in a user
   let user;
