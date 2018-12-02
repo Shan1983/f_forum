@@ -11,10 +11,16 @@ const { generateHash } = require("../../helpers/auth");
 exports.getAgent = server => {
   return (agent = chai.request.agent(server));
 };
-exports.login = async (agent, data, type = null) => {
+exports.login = async (agent, data = {}, type = null) => {
   // log in a user
   let user;
   switch (type) {
+    case "Member":
+      user = await agent
+        .post("/api/v1/user/login")
+        .set("content-type", "application/json")
+        .send({ email: "member@test.com", password: "test123" });
+      break;
     case "Mod":
       user = await agent
         .post("/api/v1/user/login")
