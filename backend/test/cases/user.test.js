@@ -2,16 +2,14 @@ process.env.NODE_ENV = "test";
 
 const server = require("../../server");
 const db = require("../../db");
-const chai = require("chai");
-const should = chai.should();
-const expect = chai.expect;
-
-chai.use(require("chai-http"));
-chai.use(require("chai-things"));
 
 const { setupTestDb, DbCleanup } = require("../helpers/dbSetup");
-const { login, register, badRegistration } = require("../helpers/users");
-const agent = chai.request.agent(server);
+const {
+  login,
+  register,
+  badRegistration,
+  getAgent
+} = require("../helpers/users");
 
 describe("USER ROUTES", () => {
   beforeEach(async () => {
@@ -57,28 +55,28 @@ describe("USER ROUTES", () => {
     describe("LogIn", () => {
       it("should log a user in", async () => {
         const data = { email: "test@test.com", password: "test123" };
-        const user = await login(agent, data);
+        const user = await login(getAgent(server), data);
 
         user.should.have.status(200);
         user.body.should.have.property("token");
       });
       it("should refuse to log an intruder in", async () => {
         const data = { email: "intruder@test.com", password: "donkeyKong_83" };
-        const user = await login(agent, data);
+        const user = await login(getAgent(server), data);
 
         user.should.have.status(403);
         user.body.should.have.property("error", "LOGINERROR");
       });
       it("should refuse to log an unverified user in", async () => {
         const data = { email: "admin@test.com", password: "test123" };
-        const user = await login(agent, data);
+        const user = await login(getAgent(server), data);
 
         user.should.have.status(403);
         user.body.should.have.property("error", "NOTVERIFIED");
       });
       it("should refuse to log a banned user in", async () => {
         const data = { email: "banned@test.com", password: "test123" };
-        const user = await login(agent, data);
+        const user = await login(getAgent(server), data);
 
         user.should.have.status(401);
         user.body.should.have.property("error", "BANNED");
@@ -86,7 +84,7 @@ describe("USER ROUTES", () => {
     });
     describe("Register", () => {
       it("should register a new user", async () => {
-        const user = await register(agent);
+        const user = await register(getAgent(server));
 
         user.should.have.status(200);
         user.body.should.have.property("success", true);
@@ -96,7 +94,7 @@ describe("USER ROUTES", () => {
           username: "test",
           password: "test"
         };
-        const user = await badRegistration(agent, data);
+        const user = await badRegistration(getAgent(server), data);
 
         user.should.have.status(400);
         user.body.should.have.property("error", "VALIDATIONERROR");
@@ -107,7 +105,7 @@ describe("USER ROUTES", () => {
           email: "banned@test.com",
           password: "test"
         };
-        const user = await badRegistration(agent, data);
+        const user = await badRegistration(getAgent(server), data);
 
         user.should.have.status(400);
         user.body.should.have.property("error", "BANNED");
@@ -118,7 +116,7 @@ describe("USER ROUTES", () => {
           email: "test@test.com",
           password: "test"
         };
-        const user = await badRegistration(agent, data);
+        const user = await badRegistration(getAgent(server), data);
 
         user.should.have.status(400);
         user.body.should.have.property("error", "ACCOUNTEXISTS");
@@ -126,6 +124,7 @@ describe("USER ROUTES", () => {
     });
     describe("LogOut", () => {
       it("should log a user out", async () => {
+        const agent = getAgent(server);
         const logout = await agent
           .post("/api/v1/user/logout")
           .set("content-type", "application/json");
