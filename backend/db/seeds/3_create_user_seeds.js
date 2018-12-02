@@ -57,7 +57,6 @@ users.push({
   email: "member@test.com",
   hash: generateHash("test123"),
   role_id: 1,
-  banned: true,
   verified: true
 });
 
@@ -66,8 +65,7 @@ users.push({
   username: "Not Verified",
   email: "not.verified@test.com",
   hash: generateHash("test123"),
-  role_id: 1,
-  banned: true
+  role_id: 1
 });
 
 exports.seed = function(knex, Promise) {
