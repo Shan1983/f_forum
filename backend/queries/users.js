@@ -136,6 +136,26 @@ module.exports = {
     return query;
   },
 
+  async findByIdWithTopics(id) {
+    // const query = await db("users")
+    //   .where("id", id)
+    //   .where("deleted", false)
+    //   .first();
+
+    const query = await db.raw(
+      `SELECT * 
+    FROM users
+    LEFT JOIN topics ON topics.user_id = users.id
+    WHERE users.id = ?
+    ORDER BY topics.created_at DESC
+    LIMIT 5
+    `,
+      [id]
+    );
+
+    return query.rows;
+  },
+
   async update(id, user) {
     const rows = await db("users")
       .where("id", id)
