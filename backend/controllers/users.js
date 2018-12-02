@@ -364,6 +364,7 @@ exports.login = async (req, res, next) => {
       );
 
       const userObj = {
+        id: query.id,
         username: query.username,
         email: query.email,
         created_at: query.created_at,
