@@ -56,14 +56,15 @@ describe("USER ROUTES", () => {
 
         const token = `Bearer ${user.body.token}`;
         const allUsers = await agent
-          .get(
-            `/api/v1/user/${Math.floor(Math.random() * Math.floor(20)) || 1}`
-          )
+          .get(`/api/v1/user/${user.body.id}`)
           .set("content-type", "application/json")
           .set("Authorization", token);
 
         allUsers.should.have.status(200);
-        allUsers.body.should.have.property("error");
+        allUsers.body.should.have.property("users");
+        const keys = allUsers.body.users;
+        keys.should.have.property("username").and.be.a("string");
+        keys.should.have.property("topics").and.be.a("array");
       });
       it("should return 400 if user not exists");
     });
