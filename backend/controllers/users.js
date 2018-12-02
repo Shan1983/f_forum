@@ -13,6 +13,7 @@ const {
   updateEmailSchema,
   registerSchema
 } = require("../helpers/validation");
+const { getCategory } = require("../helpers/topic");
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -122,10 +123,10 @@ exports.getAllAdmins = async (req, res, next) => {
 exports.getSingle = async (req, res, next) => {
   try {
     // get the user
-    const user = await User.findById(req.params.id);
+    const user = await User.findByIdWithTopics(req.params.id);
 
     // validate if we found a user
-    if (!users) {
+    if (!user) {
       res.status(400);
       return next({
         error: "ACCOUNTNOTEXISTS",
@@ -134,17 +135,39 @@ exports.getSingle = async (req, res, next) => {
     }
 
     // find the users posts
+    // first we grab the users first 5 topics
+    // then we grab the category
+    const topics = user.map(async t => {
+      const cat = await getCategory(t.category_id);
 
+      return {
+        title: t.title,
+        category: cat[0],
+        color: t.topic_color,
+        path: `/api/v1/topic/${t.id}`
+      };
+    });
+
+    // we resolve the promise from getting the category title
+    let topicsObj = await Promise.all(topics);
+
+    if (!topicsObj[0].title) {
+      topicsObj = [];
+    }
+
+    // we then prep the complete user obj for sending to the client
     const userObj = {
-      color_icon: user.color_icon,
-      username: user.username,
-      role: await getRoleFromId(user.role_id),
-      avatar: user.avatar,
-      created_at: user.created_at,
-      posts: []
+      color_icon: user[0].color_icon,
+      username: user[0].username,
+      role: await getRoleFromId(user[0].role_id),
+      avatar: user[0].avatar,
+      created_at: user[0].created_at,
+      topics: topicsObj
     };
 
-    res.json(userObj);
+    res.json({
+      users: userObj
+    });
   } catch (error) {
     res.status(400);
     next(error);
