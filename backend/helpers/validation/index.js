@@ -2,7 +2,8 @@ const Joi = require("joi");
 
 exports.updatePasswordSchema = Joi.object().keys({
   password: Joi.string().required(),
-  confirmPassword: Joi.string().required()
+  confirmPassword: Joi.string().required(),
+  newPassword: Joi.string().required()
 });
 
 exports.updateEmailSchema = Joi.object().keys({
