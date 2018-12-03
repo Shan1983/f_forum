@@ -1,6 +1,7 @@
 const faker = require("faker");
 const randomColor = require("randomcolor");
 const { generateHash } = require("../../helpers/auth");
+const uuidv4 = require("uuid/v4");
 
 let users = [];
 
@@ -10,7 +11,8 @@ for (let i = 1; i <= 16; i++) {
     username: faker.internet.userName(),
     email: faker.internet.email(),
     hash: generateHash("test123"),
-    role_id: 1
+    role_id: 1,
+    token: uuidv4()
   });
 }
 
@@ -20,7 +22,8 @@ users.push({
   email: "test@test.com",
   hash: generateHash("test123"),
   verified: true,
-  role_id: 4
+  role_id: 4,
+  ptoken: uuidv4()
 });
 
 users.push({
@@ -65,7 +68,8 @@ users.push({
   username: "Not Verified",
   email: "not.verified@test.com",
   hash: generateHash("test123"),
-  role_id: 1
+  role_id: 1,
+  token: uuidv4()
 });
 
 exports.seed = function(knex, Promise) {
