@@ -8,7 +8,10 @@ const {
   login,
   register,
   badRegistration,
-  getAgent
+  getAgent,
+  getNonVerifiedUser,
+  getUserByEmail_test,
+  getUserById_test
 } = require("../helpers/users");
 
 describe("USER ROUTES", () => {
@@ -161,9 +164,7 @@ describe("USER ROUTES", () => {
     describe("Verify A Users Email Address", () => {
       it("should verify a users email address", async () => {
         const agent = getAgent(server);
-        const user = await db("users")
-          .where("email", "not.verified@test.com")
-          .first();
+        const user = await getNonVerifiedUser();
 
         const verify = await agent
           .get(`/api/v1/user/verify/email/${user.token}`)
@@ -187,9 +188,7 @@ describe("USER ROUTES", () => {
       it("should reset a users password", async () => {
         const agent = getAgent(server);
 
-        const user = await db("users")
-          .where("email", "test@test.com")
-          .first();
+        const user = await getUserByEmail_test("test@test.com");
 
         const reset = await agent
           .get(`/api/v1/user/${user.ptoken}/request/reset`)
@@ -206,9 +205,7 @@ describe("USER ROUTES", () => {
       it("should return 400 if user not exists", async () => {
         const agent = getAgent(server);
 
-        const user = await db("users")
-          .where("email", "moderator@test.com")
-          .first();
+        const user = await getUserByEmail_test("moderator@test.com");
 
         const reset = await agent
           .get(`/api/v1/user/${user.ptoken}/request/reset`)
@@ -221,9 +218,7 @@ describe("USER ROUTES", () => {
       it("should return 400 if password validation fails", async () => {
         const agent = getAgent(server);
 
-        const user = await db("users")
-          .where("email", "moderator@test.com")
-          .first();
+        const user = await getUserByEmail_test("moderator@test.com");
 
         const reset = await agent
           .get(`/api/v1/user/${user.ptoken}/request/reset`)
@@ -339,9 +334,7 @@ describe("USER ROUTES", () => {
         const agent = getAgent(server);
         const user = await login(agent, {}, "Admin");
 
-        const userToClose = await db("users")
-          .where("id", 1)
-          .first();
+        const userToClose = await getUserById_test(1);
 
         const token = `Bearer ${user.body.token}`;
         const close = await agent
@@ -407,9 +400,7 @@ describe("USER ROUTES", () => {
         const agent = getAgent(server);
         const user = await login(agent, {}, "Admin");
 
-        const userToPromote = await db("users")
-          .where("id", 1)
-          .first();
+        const userToPromote = await getUserById_test(1);
 
         const token = `Bearer ${user.body.token}`;
         const promote = await agent
@@ -439,9 +430,7 @@ describe("USER ROUTES", () => {
         const agent = getAgent(server);
         const user = await login(agent, {}, "Admin");
 
-        const userToPromote = await db("users")
-          .where("id", 1)
-          .first();
+        const userToPromote = await getUserById_test(1);
 
         const token = `Bearer ${user.body.token}`;
         const promote = await agent
@@ -457,9 +446,7 @@ describe("USER ROUTES", () => {
         const agent = getAgent(server);
         const user = await login(agent, {}, "Admin");
 
-        const userToPromote = await db("users")
-          .where("id", 1)
-          .first();
+        const userToPromote = await getUserById_test(1);
 
         const token = `Bearer ${user.body.token}`;
         const promote = await agent
