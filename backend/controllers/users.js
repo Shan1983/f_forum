@@ -11,6 +11,7 @@ const { signToken } = require("../helpers/tokens");
 const {
   updatePasswordSchema,
   updateEmailSchema,
+  updateOptionsSchema,
   registerSchema,
   roleSchema
 } = require("../helpers/validation");
@@ -594,8 +595,8 @@ exports.updateProfileOptions = async (req, res, next) => {
 
     // update the users email
     if (!errors.error) {
-      user.bio = req.body.description;
-      user.allowSubs = req.body.subscriptions;
+      user.bio = req.body.bio;
+      user.allowSubs = req.body.allowSubs;
       user.advertising = req.body.advertising;
       await User.update(user.id, user);
     } else {
@@ -641,7 +642,14 @@ exports.updateProfilePassword = async (req, res, next) => {
     // update the users password
     if (!errors.error) {
       if (await bcrypt.compare(req.body.password, user.hash)) {
-        const newHash = generateHash(req.body.confirmPassword);
+        if (req.body.newPassword !== req.body.confirmPassword) {
+          res.status(400);
+          return next({
+            error: "PASSWORDVALIDATION",
+            message: "New Password and Confirm Password must match."
+          });
+        }
+        const newHash = generateHash(req.body.newPassword);
         user.hash = newHash;
         await User.update(user.id, user);
       } else {
