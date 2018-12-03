@@ -177,26 +177,50 @@ exports.getSingle = async (req, res, next) => {
 exports.getProfile = async (req, res, next) => {
   try {
     // get the user
-    const user = await User.findById(req.params.id);
+    const user = await User.findByIdWithTopics(req.params.id);
 
     // validate if we found a user
-    if (!users) {
+    if (user.length <= 0) {
       res.status(404);
-      return next();
+      return next({
+        error: "NOTFOUND",
+        message: `Not Found - ${req.originalUrl}`
+      });
+    }
+
+    // find the users posts
+    // first we grab the users first 5 topics
+    // then we grab the category
+    const topics = user.map(async t => {
+      const cat = await getCategory(t.category_id);
+
+      return {
+        title: t.title,
+        category: cat[0],
+        color: t.topic_color,
+        path: `/api/v1/topic/${t.id}`
+      };
+    });
+
+    // we resolve the promise from getting the category title
+    let topicsObj = await Promise.all(topics);
+
+    if (!topicsObj[0].title) {
+      topicsObj = [];
     }
 
     // get other stuff <<coming soon>>
     const userObj = {
-      color_icon: user.color_icon,
-      username: user.username,
-      role: await getRoleFromId(user.role_id),
-      avatar: user.avatar,
-      created_at: user.created_at,
-      posts: [],
+      color_icon: user[0].color_icon,
+      username: user[0].username,
+      role: await getRoleFromId(user[0].role_id),
+      avatar: user[0].avatar,
+      created_at: user[0].created_at,
+      topics: topicsObj,
       friends: []
     };
 
-    res.json(userObj);
+    res.json({ user: userObj });
   } catch (error) {
     next(error);
   }
