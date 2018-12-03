@@ -1,3 +1,4 @@
+const db = require("../../db");
 const chai = require("chai");
 const should = chai.should();
 const expect = chai.expect;
@@ -82,4 +83,27 @@ exports.badRegistration = async (agent, data) => {
     .set("content-type", "application/json")
     .send(data);
   return user;
+};
+
+exports.getNonVerifiedUser = async () => {
+  const user = await db("users")
+    .where("email", "not.verified@test.com")
+    .first();
+
+  return user;
+};
+
+exports.getUserByEmail_test = async email => {
+  const query = await db("users")
+    .where("email", email)
+    .first();
+  return query;
+};
+
+exports.getUserById_test = async id => {
+  const query = await db("users")
+    .where("id", id)
+    .first();
+
+  return query;
 };
