@@ -86,14 +86,14 @@ describe("USER ROUTES", () => {
         const user = await login(agent, {}, "Admin");
 
         const token = `Bearer ${user.body.token}`;
-        const adminUsers = await agent
+        const close = await agent
           .get("/api/v1/user/admins?page=1&limit=15")
           .set("content-type", "application/json")
           .set("Authorization", token);
 
-        adminUsers.should.have.status(200);
-        adminUsers.body.should.have.property("users").and.be.a("array");
-        const keys = adminUsers.body.users;
+        close.should.have.status(200);
+        close.body.should.have.property("users").and.be.a("array");
+        const keys = close.body.users;
         keys[0].should.have.property("id").and.be.a("number");
         keys[0].should.have.property("username").and.be.a("string");
       });
@@ -144,17 +144,91 @@ describe("USER ROUTES", () => {
       });
     });
     describe("Get A Users Avatar", () => {
-      it("should return a users avatar");
+      it("should return a users avatar", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const profile = await agent
+          .get(`/api/v1/user/${user.body.id}/avatar`)
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        profile.should.have.status(200);
+        profile.body.should.have.property("avatar");
+      });
     });
     describe("Verify A Users Email Address", () => {
-      it("should verify a users email address");
-      it("should return 400 if no user exists");
+      it("should verify a users email address", async () => {
+        const agent = getAgent(server);
+        const user = await db("users")
+          .where("email", "not.verified@test.com")
+          .first();
+
+        const verify = await agent
+          .get(`/api/v1/user/verify/email/${user.token}`)
+          .set("content-type", "application/json");
+
+        verify.should.have.status(200);
+        verify.body.should.have.property("success", true);
+      });
+      it("should return 400 if no user exists", async () => {
+        const agent = getAgent(server);
+
+        const verify = await agent
+          .get(`/api/v1/user/verify/email/9999`)
+          .set("content-type", "application/json");
+
+        verify.should.have.status(400);
+        verify.body.should.have.property("error");
+      });
     });
     describe("Reset A Users Password", () => {
-      it("should reset a users password");
-      it("should return 400 if user not exists");
-      it("should return 400 if password validation fails");
-      it("should return 400 if validation fails");
+      it("should reset a users password", async () => {
+        const agent = getAgent(server);
+
+        const user = await db("users")
+          .where("email", "test@test.com")
+          .first();
+
+        const reset = await agent
+          .get(`/api/v1/user/${user.ptoken}/request/reset`)
+          .set("content-type", "application/json")
+          .send({ password: "test123", confirmPassword: "test123" });
+
+        reset.should.have.status(200);
+        reset.body.should.have.property("success", true);
+      });
+      it("should return 400 if user not exists", async () => {
+        const agent = getAgent(server);
+
+        const user = await db("users")
+          .where("email", "moderator@test.com")
+          .first();
+
+        const reset = await agent
+          .get(`/api/v1/user/${user.ptoken}/request/reset`)
+          .set("content-type", "application/json")
+          .send({ password: "test123", confirmPassword: "test123" });
+
+        reset.should.have.status(400);
+        reset.body.should.have.property("error");
+      });
+      it("should return 400 if password validation fails", async () => {
+        const agent = getAgent(server);
+
+        const user = await db("users")
+          .where("email", "moderator@test.com")
+          .first();
+
+        const reset = await agent
+          .get(`/api/v1/user/${user.ptoken}/request/reset`)
+          .set("content-type", "application/json")
+          .send({ password: "test123", confirmPassword: "test1234" });
+
+        reset.should.have.status(400);
+        reset.body.should.have.property("error");
+      });
     });
   });
   describe("POST", () => {
@@ -240,22 +314,159 @@ describe("USER ROUTES", () => {
       });
     });
     describe("Upload Avatar - Auth", () => {
-      it("should upload a users avatar");
+      it("should upload a users avatar", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const upload = await agent
+          .post(`/api/v1/user/profile/${user.body.id}/upload`)
+          .set("Authorization", token)
+          .field("content-type", "multipart/form-data")
+          .field("avatar", process.env.TEST_IMG_FILE)
+          .attach("avatar", process.env.DESKTOP_IMAGE_PATH);
+
+        upload.should.have.status(200);
+        upload.body.should.have.property("success", true);
+      });
     });
     describe("Close User Account - Auth | Admin", () => {
-      it("should close a users account");
-      it("should return 400 if account not exists");
-      it("should return 400 if account is admin");
+      it("should close a users account", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const userToClose = await db("users")
+          .where("id", 1)
+          .first();
+
+        const token = `Bearer ${user.body.token}`;
+        const close = await agent
+          .post(`/api/v1/user/${userToClose.id}/close`)
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        close.should.have.status(200);
+        close.body.should.have.property("success");
+      });
+      it("should return 400 if account not exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const close = await agent
+          .post(`/api/v1/user/9999/close`)
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        close.should.have.status(400);
+        close.body.should.have.property("error");
+      });
+      it("should return 400 if account is admin", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const close = await agent
+          .post(`/api/v1/user/${user.body.id}/close`)
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        close.should.have.status(400);
+        close.body.should.have.property("error");
+      });
     });
     describe("Request A Password Reset", () => {
-      it("should send a reset request");
-      it("should return 400 if user not exist");
+      it("should send a reset request", async () => {
+        const agent = getAgent(server);
+
+        const request = await agent
+          .post(`/api/v1/user/request/reset`)
+          .set("content-type", "application/json")
+          .send({ email: "test@test.com" });
+
+        request.should.have.status(200);
+        request.body.should.have.property("success");
+      });
+      it("should return 400 if user not exist", async () => {
+        const agent = getAgent(server);
+
+        const request = await agent
+          .post(`/api/v1/user/request/reset`)
+          .set("content-type", "application/json");
+
+        request.should.have.status(400);
+        request.body.should.have.property("error");
+      });
     });
     describe("User Privileges - Auth | Admin", () => {
-      it("should update a users privileges");
-      it("should return 400 if user not exists");
-      it("should return 400 if changing to same role");
-      it("should return 400 if validation fails");
+      it("should update a users privileges", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const userToPromote = await db("users")
+          .where("id", 1)
+          .first();
+
+        const token = `Bearer ${user.body.token}`;
+        const promote = await agent
+          .post(`/api/v1/user/${userToPromote.id}/privileges`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ role: "Admin" });
+
+        promote.should.have.status(200);
+        promote.body.should.have.property("success");
+      });
+      it("should return 400 if user not exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const promote = await agent
+          .post(`/api/v1/user/9999/privileges`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ role: "Admin" });
+
+        promote.should.have.status(400);
+        promote.body.should.have.property("error");
+      });
+      it("should return 400 if changing to same role", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const userToPromote = await db("users")
+          .where("id", 1)
+          .first();
+
+        const token = `Bearer ${user.body.token}`;
+        const promote = await agent
+          .post(`/api/v1/user/${userToPromote.id}/privileges`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ role: "Member" });
+
+        promote.should.have.status(400);
+        promote.body.should.have.property("error");
+      });
+      it("should return 400 if validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const userToPromote = await db("users")
+          .where("id", 1)
+          .first();
+
+        const token = `Bearer ${user.body.token}`;
+        const promote = await agent
+          .post(`/api/v1/user/${userToPromote.id}/privileges`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ role: "" });
+
+        promote.should.have.status(400);
+        promote.body.should.have.property("error");
+      });
     });
   });
   describe("PUT", () => {
