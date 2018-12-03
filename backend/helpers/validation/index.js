@@ -54,3 +54,7 @@ exports.topicUpdateSchema = Joi.object().keys({
 exports.replySchema = Joi.object().keys({
   reply: Joi.string().required()
 });
+
+exports.roleSchema = Joi.object().keys({
+  role: Joi.string().required()
+});
