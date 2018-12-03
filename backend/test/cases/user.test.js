@@ -81,12 +81,67 @@ describe("USER ROUTES", () => {
       });
     });
     describe("Get All Admin Users - Paginated | Auth | Admin", () => {
-      it("should return a list of admin users");
-      it("should return 404 if no admin users found.");
+      it("should return a list of admin users", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const adminUsers = await agent
+          .get("/api/v1/user/admins?page=1&limit=15")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        adminUsers.should.have.status(200);
+        adminUsers.body.should.have.property("users").and.be.a("array");
+        const keys = adminUsers.body.users;
+        keys[0].should.have.property("id").and.be.a("number");
+        keys[0].should.have.property("username").and.be.a("string");
+      });
+      it("should return 404 if no admin users found.", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const adminUsers = await agent
+          .get("/api/v1/user/admins?page=99&limit=15")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        adminUsers.should.have.status(404);
+        adminUsers.body.should.have.property("error");
+      });
     });
     describe("Get A Users Profile - Auth", () => {
-      it("should return a users profile");
-      it("should return 404 if no user profile exists");
+      it("should return a users profile", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const profile = await agent
+          .get(`/api/v1/user/profile/${user.body.id}`)
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        profile.should.have.status(200);
+        profile.body.should.have.property("user");
+        const keys = profile.body.user;
+        keys.should.have.property("username").and.be.a("string");
+        keys.should.have.property("topics").and.be.a("array");
+      });
+      it("Reminder to add friends to profile");
+      it("should return 404 if no user profile exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const profile = await agent
+          .get(`/api/v1/user/profile/9999`)
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        profile.should.have.status(404);
+        profile.body.should.have.property("error");
+      });
     });
     describe("Get A Users Avatar", () => {
       it("should return a users avatar");
