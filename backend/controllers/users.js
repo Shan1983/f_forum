@@ -11,7 +11,8 @@ const { signToken } = require("../helpers/tokens");
 const {
   updatePasswordSchema,
   updateEmailSchema,
-  registerSchema
+  registerSchema,
+  roleSchema
 } = require("../helpers/validation");
 const { getCategory } = require("../helpers/topic");
 
@@ -289,7 +290,7 @@ exports.resetPassword = async (req, res, next) => {
           message: "Password fields need to match."
         });
       }
-      User.update(user.id, user);
+      await User.update(user.id, user);
     } else {
       res.status(400);
       return next({
@@ -297,8 +298,6 @@ exports.resetPassword = async (req, res, next) => {
         message: errors.error.details[0].message
       });
     }
-
-    await User.update(user.id, user);
 
     res.json({ success: true });
   } catch (error) {
@@ -313,7 +312,7 @@ exports.requestPasswordReset = async (req, res, next) => {
 
     if (!errors.error) {
       // get the user
-      const user = await User.findByEmail(req.params.email);
+      const user = await User.findByEmail(req.body.email);
 
       // validate user found
       if (user === undefined) {
@@ -669,6 +668,17 @@ exports.updateProfilePassword = async (req, res, next) => {
 
 exports.privileges = async (req, res, next) => {
   try {
+    //validate the role
+    const errors = Joi.validate(req.body, roleSchema);
+
+    if (errors.error) {
+      res.status(400);
+      return next({
+        error: errors.error.name.toUpperCase(),
+        message: errors.error.details[0].message
+      });
+    }
+
     // find the user
     const user = await User.findById(req.params.id);
 
