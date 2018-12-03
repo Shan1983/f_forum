@@ -13,7 +13,7 @@ router.get(
 );
 
 router.post("/", isAuthenticated, staff, log, controller.createNewCategory);
-router.post("/:id", isAuthenticated, staff, log, controller.removeCategory);
+router.delete("/:id", isAuthenticated, staff, log, controller.removeCategory);
 
 router.put("/:id", isAuthenticated, staff, log, controller.editCategory);
 
