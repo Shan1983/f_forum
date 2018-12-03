@@ -194,7 +194,11 @@ describe("USER ROUTES", () => {
         const reset = await agent
           .get(`/api/v1/user/${user.ptoken}/request/reset`)
           .set("content-type", "application/json")
-          .send({ password: "test123", confirmPassword: "test123" });
+          .send({
+            password: "test123",
+            newPassword: "test123",
+            confirmPassword: "test123"
+          });
 
         reset.should.have.status(200);
         reset.body.should.have.property("success", true);
@@ -471,23 +475,246 @@ describe("USER ROUTES", () => {
   });
   describe("PUT", () => {
     describe("Update User Email - Auth", () => {
-      it("should update a users email address");
-      it("should return 400 if user not exists");
-      it("should return 401 if user not account owner");
-      it("should return 400 if validation fails");
+      it("should update a users email address", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const email = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/email`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ email: "turtle@test.com" });
+
+        email.should.have.status(200);
+        email.body.should.have.property("success");
+      });
+      it("should return 400 if user not exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const email = await agent
+          .put(`/api/v1/user/profile/9999/email`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ email: "turtle@test.com" });
+
+        email.should.have.status(400);
+        email.body.should.have.property("error");
+      });
+      it("should return 401 if user not account owner", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const email = await agent
+          .put(`/api/v1/user/profile/1/email`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ email: "turtle@test.com" });
+
+        email.should.have.status(401);
+        email.body.should.have.property("error");
+      });
+      it("should return 400 if validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const email = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/email`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ email: "" });
+
+        email.should.have.status(400);
+        email.body.should.have.property("error");
+      });
     });
     describe("Update A Users Account Options - Auth", () => {
-      it("should update a users account options");
-      it("should return 400 if user not exists");
-      it("should return 401 if user not account owner");
-      it("should return 400 if validation fails");
+      it("should update a users account options", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const options = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/options`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            bio: "blah blah",
+            allowSubs: true,
+            advertising: true
+          });
+
+        options.should.have.status(200);
+        options.body.should.have.property("success");
+      });
+      it("should return 400 if user not exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const options = await agent
+          .put(`/api/v1/user/profile/9999/options`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            bio: "blah blah",
+            allowSubs: true,
+            advertising: true
+          });
+
+        options.should.have.status(400);
+        options.body.should.have.property("error");
+      });
+      it("should return 401 if user not account owner", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const options = await agent
+          .put(`/api/v1/user/profile/1/options`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            bio: "blah blah",
+            allowSubs: true,
+            advertising: true
+          });
+
+        options.should.have.status(401);
+        options.body.should.have.property("error");
+      });
+      it("should return 400 if validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const options = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/options`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            bio: [1, 2, 3],
+            allowSubs: true,
+            advertising: true
+          });
+
+        options.should.have.status(400);
+        options.body.should.have.property("error");
+      });
     });
     describe("Update A Users Password - Auth", () => {
-      it("should update a users password");
-      it("should return 400 if user not exists");
-      it("should return 401 if user not account owner");
-      it("should return 401 if password validation fails");
-      it("should return 400 if validation fails");
+      it("should update a users password", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const password = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/password`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            password: "test123",
+            newPassword: "spider104",
+            confirmPassword: "spider104"
+          });
+
+        password.should.have.status(200);
+        password.body.should.have.property("success");
+      });
+      it("should return 400 if user not exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const password = await agent
+          .put(`/api/v1/user/profile/9999/password`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            password: "test123",
+            newPassword: "spider104",
+            confirmPassword: "spider104"
+          });
+
+        password.should.have.status(400);
+        password.body.should.have.property("error");
+      });
+      it("should return 401 if user not account owner", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const password = await agent
+          .put(`/api/v1/user/profile/1/password`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            password: "test123",
+            newPassword: "spider104",
+            confirmPassword: "spider104"
+          });
+
+        password.should.have.status(401);
+        password.body.should.have.property("error");
+      });
+      it("should return 401 if password validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const password = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/password`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            password: "test1234",
+            newPassword: "spider104",
+            confirmPassword: "spider104"
+          });
+
+        password.should.have.status(401);
+        password.body.should.have.property("error");
+      });
+      it("should return 400 if validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const password = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/password`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            password: "",
+            newPassword: "spider104",
+            confirmPassword: "spider104"
+          });
+
+        password.should.have.status(400);
+        password.body.should.have.property("error");
+      });
+      it("should return 400 if password do not match", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const password = await agent
+          .put(`/api/v1/user/profile/${user.body.id}/password`)
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({
+            password: "test123",
+            newPassword: "spider10483",
+            confirmPassword: "spider104"
+          });
+
+        password.should.have.status(400);
+        password.body.should.have.property("error");
+      });
     });
   });
 });
