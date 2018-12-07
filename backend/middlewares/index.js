@@ -1,8 +1,10 @@
 const passport = require("passport");
 const { errorLog, logger } = require("../helpers/logging");
+const moment = require("moment");
 
 exports.log = (req, res, next) => {
   const log = {
+    time: moment().format("YYYY-MM-DD-hh:mm:ss"),
     ip: req.ip,
     user: req.session.userId || "N/A",
     status: res.statusCode,
@@ -20,6 +22,7 @@ exports.notFound = (req, res, next) => {
   res.status(404);
 
   const logError = {
+    time: moment().format("YYYY-MM-DD-hh:mm:ss"),
     ip: req.ip,
     user: req.session.userId || "N/A",
     status: res.statusCode,
@@ -37,6 +40,7 @@ exports.errorHandler = (err, req, res, next) => {
   res.status(res.statusCode || 500);
   // log error
   const logError = {
+    time: moment().format("YYYY-MM-DD-hh:mm:ss"),
     ip: req.ip,
     user: req.session.userId || "N/A",
     status: res.statusCode,
