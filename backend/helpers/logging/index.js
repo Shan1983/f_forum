@@ -1,5 +1,6 @@
 const winston = require("winston");
 const fs = require("fs");
+const moment = require("moment");
 
 // setup logging
 const logDir = "./logs";
@@ -17,8 +18,12 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-const logFile = `${logDir}/f_forum-general.log`;
-const logFileError = `${logDir}/f_forum-errors.log`;
+const logFile = `${logDir}/${moment().format(
+  "YYYY-MM-DD-HH:MM:ss"
+)}-f_forum-general.log`;
+const logFileError = `${logDir}/${moment().format(
+  "YYYY-MM-DD-HH:MM:ss"
+)}-f_forum-errors.log`;
 
 const logger = winston.createLogger({
   level: "info",
