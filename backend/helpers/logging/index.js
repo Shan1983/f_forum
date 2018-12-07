@@ -6,7 +6,7 @@ const moment = require("moment");
 const logDir = "./logs";
 
 const logFormatter = args => {
-  const date = moment().format("DD.MM.YYYY hh:mm:ss");
+  const date = moment().format("DD.MM.YYYY");
   let msg;
   msg = `${date} - ${args.ip} - ${args.user} - ${args.status} - ${
     args.method
@@ -19,10 +19,10 @@ if (!fs.existsSync(logDir)) {
 }
 
 const logFile = `${logDir}/${moment().format(
-  "YYYY-MM-DD-HH:MM:ss"
+  "YYYY-MM-DD"
 )}-f_forum-general.log`;
 const logFileError = `${logDir}/${moment().format(
-  "YYYY-MM-DD-HH:MM:ss"
+  "YYYY-MM-DD"
 )}-f_forum-errors.log`;
 
 const logger = winston.createLogger({
