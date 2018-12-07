@@ -7,6 +7,7 @@ const {
   categoryUpdateSchema
 } = require("../helpers/validation");
 const { generateId } = require("../helpers/auth");
+const { getCategory } = require("../helpers/topic");
 const slugify = require("slugify");
 
 // const emitter = require("../events/test");
@@ -19,15 +20,12 @@ exports.getAllCategories = async (req, res, next) => {
       limit: req.query.limit
     };
     // get all the categories
-    const categories = await Category.findAllCategories(options);
+    const categories = await Category.findAllCategoriesPaginated(options);
 
-    // if (categories === undefined) {
-    //   res.status(400);
-    //   return next({
-    //     error: "CATEGORYERROR",
-    //     message: "The category does not exist."
-    //   });
-    // }
+    if (categories.data === undefined) {
+      res.status(404);
+      return next();
+    }
 
     // create category object
     const categoryObj = categories.data.map(c => {
@@ -41,7 +39,7 @@ exports.getAllCategories = async (req, res, next) => {
     });
 
     res.json({
-      category: categoryObj,
+      categories: categoryObj,
       meta: {
         limit: categories.limit,
         count: categories.count,
@@ -56,32 +54,41 @@ exports.getAllCategories = async (req, res, next) => {
 };
 exports.getAllCategoryTopics = async (req, res, next) => {
   try {
+    // pagination options
+    const options = { req, page: req.query.page, limit: req.query.limit };
     // get all the categories
     const categories = await Category.findAllCategoryTopics(
-      req.params.category
+      req.params.category,
+      options
     );
 
-    console.log(categories);
-    if (categories === undefined) {
-      res.status(400);
-      return next({
-        error: "CATEGORYERROR",
-        message: "The category does not exist."
-      });
+    const categoryName = await getCategory(req.params.category);
+
+    if (categories.data === undefined) {
+      res.status(404);
+      return next();
     }
 
     // create category object
-    const categoryObj = categories.map(c => {
+    const categoryObj = categories.data.map(c => {
       return {
         title: c.title,
         slug: c.slug,
-        description: c.description,
-        icon_color: c.icon_color,
+        color: c.topic_color,
         created: c.created_at
       };
     });
 
-    res.json(categoryObj);
+    res.json({
+      category: categoryName[0],
+      topics: categoryObj,
+      meta: {
+        limit: categories.limit,
+        count: categories.count,
+        pageCount: categories.pageCount,
+        currentPage: categories.currentPage
+      }
+    });
   } catch (error) {
     res.status(400);
     next(error);
