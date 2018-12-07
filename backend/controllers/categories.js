@@ -108,7 +108,6 @@ exports.createNewCategory = async (req, res, next) => {
     }
 
     const categoryObj = {
-      id: generateId(),
       title: req.body.title.toUpperCase(),
       slug: slugify(req.body.title),
       description: req.body.description,
@@ -117,7 +116,7 @@ exports.createNewCategory = async (req, res, next) => {
 
     await Category.insert(categoryObj);
 
-    res.json(categoryObj);
+    res.json({ success: true, category: categoryObj.title });
   } catch (error) {
     res.status(400);
     next(error);
@@ -155,7 +154,7 @@ exports.editCategory = async (req, res, next) => {
 
     await Category.update(req.params.id, categoryObj);
 
-    res.json(categoryObj);
+    res.json({ success: true, category: categoryObj.title });
   } catch (error) {
     res.status(400);
     next(error);
