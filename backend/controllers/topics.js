@@ -7,10 +7,11 @@ const {
   topicUpdateSchema,
   topicCategorySchema
 } = require("../helpers/validation");
-const { generateId } = require("../helpers/auth");
 const slugify = require("slugify");
 const moment = require("moment");
 const { getCategory, getUser } = require("../helpers/topic");
+const { getRoleFromId } = require("../helpers/roles");
+const rewards = require("../helpers/rewards");
 
 exports.allCategoryTopics = async (req, res, next) => {
   try {
@@ -97,7 +98,7 @@ exports.getTopic = async (req, res, next) => {
         pcount: topicDetails.post_count,
         points: topicDetails.points,
         avatar: topicDetails.avatar,
-        role: { title: topicDetails.title }
+        role: topicDetails.title
       }
     };
 
@@ -163,10 +164,17 @@ exports.getDeletedTopics = async (req, res, next) => {
 };
 exports.createNewTopic = async (req, res, next) => {
   try {
-    // ! This need to be validated with joi
+    const errors = Joi.validate(req.body, topicSchema);
+
+    if (errors.error) {
+      res.status(400);
+      return next({
+        error: errors.error.name.toUpperCase(),
+        message: errors.error.details[0].message
+      });
+    }
 
     const newTopic = {
-      id: generateId(),
       topic_color: req.body.color || randomColor(),
       category_id: req.params.category,
       title: req.body.title,
@@ -178,9 +186,29 @@ exports.createNewTopic = async (req, res, next) => {
     const topic = await Topic.insert(newTopic);
 
     await User.addToPostCount(newTopic.user_id);
-    await User.addToPoints(newTopic.user_id, 50);
+    await User.addToPoints(newTopic.user_id, rewards.topic_reward);
 
-    res.json(topic);
+    // get the user data
+    const userData = await getUser(req.session.userId);
+    const topicObj = {
+      id: topic.id,
+      color: topic.topic_color,
+      title: topic.title,
+      sticky: topic.sticky,
+      status: topic.lock,
+      reason: topic.lock_reason || "N/A",
+      created: moment(topic.created_at).fromNow(),
+      discussion: topic.discussion,
+      user: {
+        username: userData.username,
+        pcount: userData.post_count,
+        points: userData.points,
+        role: await getRoleFromId(userData.role_id),
+        avatar: userData.avatar
+      }
+    };
+
+    res.json({ topic: topicObj });
   } catch (error) {
     res.status(400);
     next(error);
