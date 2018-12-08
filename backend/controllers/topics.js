@@ -143,6 +143,8 @@ exports.getDeletedTopics = async (req, res, next) => {
 };
 exports.createNewTopic = async (req, res, next) => {
   try {
+    // ! This need to be validated with joi
+
     const newTopic = {
       id: generateId(),
       topic_color: req.body.color || randomColor(),
