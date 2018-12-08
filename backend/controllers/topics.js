@@ -10,6 +10,7 @@ const {
 const { generateId } = require("../helpers/auth");
 const slugify = require("slugify");
 const moment = require("moment");
+const { getCategory, getUser } = require("../helpers/topic");
 
 exports.allCategoryTopics = async (req, res, next) => {
   try {
@@ -23,6 +24,8 @@ exports.allCategoryTopics = async (req, res, next) => {
       req.params.category,
       options
     );
+
+    const categoryTitle = await getCategory(req.params.category);
 
     // console.log(topics);
 
@@ -50,6 +53,7 @@ exports.allCategoryTopics = async (req, res, next) => {
     });
 
     res.json({
+      category: categoryTitle,
       topics: topicsObj,
       meta: {
         limit: topics.limit,
@@ -69,40 +73,35 @@ exports.getTopic = async (req, res, next) => {
 
     if (topic.rows.length <= 0) {
       res.status(404);
-      return next({
-        error: "NOTFOUND",
-        message: "Topic not found."
-      });
+      return next();
     }
 
-    const t = topic.rows[0];
+    const topicDetails = topic.rows[0];
 
-    if (t.lock === "closed") {
+    if (topicDetails.lock === "closed") {
       res.status(403);
       return next({
         error: "TOPICLOCKED",
-        message: "Topic is locked."
+        message: topicDetails.lock_reason || "Topic is locked."
       });
     }
 
     const topicObj = {
-      topic_color: t.topic_color,
-      title: t.topic_title,
-      discussion: t.discussion,
-      created: moment(t.created_at).fromNow(),
+      topic_color: topicDetails.topic_color,
+      title: topicDetails.topic_title,
+      discussion: topicDetails.discussion,
+      created: moment(topicDetails.created_at).fromNow(),
       user: {
-        color: t.color_icon,
-        name: t.username,
-        pcount: t.post_count,
-        points: t.points,
-        avatar: t.avatar,
-        role: {
-          title: t.title
-        }
+        color: topicDetails.color_icon,
+        name: topicDetails.username,
+        pcount: topicDetails.post_count,
+        points: topicDetails.points,
+        avatar: topicDetails.avatar,
+        role: { title: topicDetails.title }
       }
     };
 
-    res.json(topicObj);
+    res.json({ topic: topicObj });
   } catch (error) {
     res.status(400);
     next(error);
@@ -135,7 +134,28 @@ exports.getDeletedTopics = async (req, res, next) => {
       return next();
     }
 
-    res.json(topics);
+    const deletedObj = topics.data.map(async d => {
+      let category = await getCategory(d.category_id);
+      return {
+        color: d.topic_color,
+        category: category[0],
+        title: d.title,
+        slug: d.slug,
+        user: await getUser(d.user_id)
+      };
+    });
+
+    const response = await Promise.all(deletedObj);
+
+    res.json({
+      deletedTopics: response,
+      meta: {
+        limit: topics.limit,
+        count: topics.count,
+        pageCount: topics.pageCount,
+        currentPage: topics.currentPage
+      }
+    });
   } catch (error) {
     res.status(400);
     next(error);
