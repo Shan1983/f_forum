@@ -5,6 +5,9 @@ const db = require("../../db");
 
 const { setupTestDb, DbCleanup } = require("../helpers/dbSetup");
 const { getAgent, login } = require("../helpers/users");
+const rewards = require("../../helpers/rewards");
+const chai = require("chai");
+const expect = chai.expect;
 
 describe("TOPIC ROUTES", () => {
   beforeEach(async () => {
@@ -134,11 +137,46 @@ describe("TOPIC ROUTES", () => {
   });
   describe("POST", () => {
     describe("Posts a new topic - Auth", () => {
-      it(
-        "should create a new topic, and increment the users post count and score"
-      );
-      it("should return 404 error if validation fails");
-      it("should return 401 if illegally accessed");
+      it("should create a new topic, and increment the users post count and score", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "test", discussion: "test test test" });
+
+        topic.should.have.status(200);
+        topic.body.should.have.property("topic");
+      });
+      it("should return 404 error if validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "", discussion: "test test test" });
+
+        topic.should.have.status(400);
+        topic.body.should.have.property("error");
+      });
+      it("should return 401 if illegally accessed", async () => {
+        const agent = getAgent(server);
+
+        const topic = await agent
+          .post("/api/v1/topic/1")
+          .set("content-type", "application/json")
+
+          .send({ title: "", discussion: "test test test" });
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
     });
     describe("Locks a topic - Staff | Auth", () => {
       it("should lock a open topic");
