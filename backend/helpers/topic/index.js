@@ -11,9 +11,9 @@ exports.getCategory = async id => {
 
 exports.getUser = async id => {
   const query = await db.raw(
-    `SELECT username FROM users WHERE id = ? AND deleted = false`,
+    `SELECT * FROM users WHERE id = ? AND deleted = false`,
     [id]
   );
   const user = query.rows[0];
-  return user.username;
+  return user;
 };
