@@ -31,7 +31,6 @@ router.post(
 );
 router.post("/:topic/move", isAuthenticated, staff, log, controller.moveTopic);
 router.post("/:topic/color", isAuthenticated, log, controller.changeTopicColor);
-// router.post("/:topic/like", isAuthenticated, log, controller.changeTopicColor);
 
 router.put("/:topic/edit", isAuthenticated, log, controller.editTopic);
 
