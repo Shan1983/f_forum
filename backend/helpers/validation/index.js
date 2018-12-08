@@ -59,3 +59,12 @@ exports.replySchema = Joi.object().keys({
 exports.roleSchema = Joi.object().keys({
   role: Joi.string().required()
 });
+
+exports.topicSchema = Joi.object().keys({
+  topic_color: Joi.string(),
+  category_id: Joi.number().integer(),
+  title: Joi.string().required(),
+  slug: Joi.string(),
+  user_id: Joi.number().integer(),
+  discussion: Joi.string().required()
+});
