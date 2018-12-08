@@ -197,6 +197,7 @@ describe("CATEGORY ROUTES", () => {
   });
   describe("DELETE", () => {
     describe("delete categories -  Auth | staff", () => {
+      it("should reassign all topics to generic category");
       it("should delete a category", async () => {
         const agent = getAgent(server);
 
