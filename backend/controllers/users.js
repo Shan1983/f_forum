@@ -16,6 +16,7 @@ const {
   roleSchema
 } = require("../helpers/validation");
 const { getCategory } = require("../helpers/topic");
+const rewards = require("../helpers/rewards");
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -452,6 +453,8 @@ exports.register = async (req, res, next) => {
       user_id: user.id,
       ip: req.ip
     });
+
+    await User.addToPoints(newTopic.user_id, rewards.topic_reward);
 
     res.json({ success: true });
   } catch (error) {
