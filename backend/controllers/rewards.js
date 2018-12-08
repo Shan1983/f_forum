@@ -1,4 +1,4 @@
-const Reward = require("../queries/rewards");
+const rewards = require("../helpers/rewards");
 
 exports.updateRewards = async (req, res, next) => {
   try {
