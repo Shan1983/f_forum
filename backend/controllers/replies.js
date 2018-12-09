@@ -102,7 +102,7 @@ exports.editreply = async (req, res, next) => {
       });
     }
 
-    const errors = Joi.validate(replySchema);
+    const errors = Joi.validate(req.body, replySchema);
 
     if (errors.error) {
       res.status(400);
@@ -125,9 +125,15 @@ exports.editreply = async (req, res, next) => {
 exports.removereply = async (req, res, next) => {
   try {
     const reply = await Reply.findById(req.params.id);
+
+    if (reply === undefined) {
+      res.status(404);
+      return next({ error: "NOTFOUND", message: "Reply not found." });
+    }
+
     await Reply.delete(reply.id);
 
-    await User.removeFromPoints(reply.user_id, 20);
+    await User.removeFromPoints(reply.user_id, rewards.reply_reward);
 
     res.json({ success: true });
   } catch (error) {
