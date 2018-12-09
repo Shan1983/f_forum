@@ -448,13 +448,13 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    await User.insert(user);
+    const newUser = await User.insert(user);
     await Ip.insert({
       user_id: user.id,
       ip: req.ip
     });
 
-    await User.addToPoints(newTopic.user_id, rewards.topic_reward);
+    await User.addToPoints(newUser.id, rewards.topic_reward);
 
     res.json({ success: true });
   } catch (error) {
