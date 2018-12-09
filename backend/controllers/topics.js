@@ -148,6 +148,14 @@ exports.getDeletedTopics = async (req, res, next) => {
 
     const response = await Promise.all(deletedObj);
 
+    if (response === undefined) {
+      res.status(500);
+      return next({
+        error: "UNKNOWN",
+        message: "Oops, something bad happened, try again."
+      });
+    }
+
     res.json({
       deletedTopics: response,
       meta: {
@@ -228,10 +236,10 @@ exports.lockTopic = async (req, res, next) => {
 
     // update the topics lock status
     topic.lock = "closed";
-    topic.lock_reason = req.body.reason;
+    topic.lock_reason = req.body.reason || "This topic has been locked.";
     await Topic.update(topic.id, topic);
 
-    res.json({ success: true, topic });
+    res.json({ success: true });
   } catch (error) {
     res.status(400);
     next(error);
@@ -249,14 +257,14 @@ exports.makeTopicSticky = async (req, res, next) => {
     // update the topics sticky status
     topic.sticky = true;
     if (req.body.sticky_duration !== "forever") {
-      topic.sticky_ends = moment(new Date()).add(
-        req.body.sticky_duration,
+      topic.sticky_ends = moment(Date.now()).add(
+        req.body.sticky_duration || 7,
         "days"
       );
     }
     await Topic.update(topic.id, topic);
 
-    res.json({ success: true, topic });
+    res.json({ success: true });
   } catch (error) {
     res.status(400);
     next(error);
@@ -271,7 +279,7 @@ exports.moveTopic = async (req, res, next) => {
       return next({ error: "NOTFOUND", message: "No topic found" });
     }
 
-    const errors = Joi.validate(topicCategorySchema);
+    const errors = Joi.validate(req.body, topicCategorySchema);
 
     if (errors.error) {
       res.status(400);
@@ -281,13 +289,13 @@ exports.moveTopic = async (req, res, next) => {
       });
     }
 
-    const categoryId = await Topic.getCategoryId(req.body.title.toUpperCase());
+    const categoryId = await Topic.getCategoryId(req.body.title);
 
     topic.category_id = categoryId.id;
 
     await Topic.update(topic.id, topic);
 
-    res.json({ success: true, topic });
+    res.json({ success: true });
   } catch (error) {
     res.status(400);
     next(error);
@@ -302,15 +310,7 @@ exports.editTopic = async (req, res, next) => {
       return next({ error: "NOTFOUND", message: "No topic found" });
     }
 
-    if (topic.user_id !== req.session.userId) {
-      res.status(401);
-      next({
-        error: "NOTAUTHORIZED",
-        message: "You are not authorized to continue."
-      });
-    }
-
-    const errors = Joi.validate(topicUpdateSchema);
+    const errors = Joi.validate(req.body, topicUpdateSchema);
 
     if (errors.error) {
       res.status(400);
@@ -320,16 +320,24 @@ exports.editTopic = async (req, res, next) => {
       });
     }
 
-    const editTopic = {
-      topic_color: req.body.color || randomColor(),
-      title: req.body.title,
-      slug: slugify(req.body.title),
-      discussion: req.body.discussion
-    };
+    if (topic.user_id === req.session.userId || req.session.role === "Owner") {
+      const editTopic = {
+        topic_color: req.body.color || randomColor(),
+        title: req.body.title,
+        slug: slugify(req.body.title),
+        discussion: req.body.discussion
+      };
 
-    const updated = await Topic.update(topic.id, editTopic);
+      await Topic.update(topic.id, editTopic);
 
-    res.json({ success: true, updated });
+      res.json({ success: true });
+    } else {
+      res.status(401);
+      next({
+        error: "NOTAUTHORIZED",
+        message: "You are not authorized to continue."
+      });
+    }
   } catch (error) {
     res.status(400);
     next(error);
@@ -345,20 +353,20 @@ exports.changeTopicColor = async (req, res, next) => {
       return next({ error: "NOTFOUND", message: "No topic found" });
     }
 
-    if (topic.user_id !== req.session.userId) {
+    if (topic.user_id === req.session.userId || req.session.role === "Owner") {
+      const currentColor = topic.topic_color;
+      topic.topic_color = req.body.changeColor || currentColor;
+
+      await Topic.update(topic.id, topic);
+
+      res.json({ success: true });
+    } else {
       res.status(401);
       return next({
         error: "NOTAUTHORIZED",
         message: "You are not authorized to continue."
       });
     }
-
-    const currentColor = topic.topic_color;
-    topic.topic_color = req.body.changeColor || currentColor;
-
-    await Topic.update(topic.id, topic);
-
-    res.json({ success: true, topic });
   } catch (error) {
     res.status(400);
     next(error);
@@ -367,9 +375,15 @@ exports.changeTopicColor = async (req, res, next) => {
 exports.deleteTopic = async (req, res, next) => {
   try {
     const topic = await Topic.findById(req.params.topic);
+
+    if (topic === undefined) {
+      res.status(404);
+      return next({ error: "NOTFOUND", message: "No topic found" });
+    }
+
     await Topic.delete(topic.id);
 
-    await User.removeFromPoints(topic.user_id, 50);
+    await User.removeFromPoints(topic.user_id, rewards.topic_reward);
 
     res.json({ success: true });
   } catch (error) {
