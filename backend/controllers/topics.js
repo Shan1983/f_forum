@@ -117,19 +117,13 @@ exports.getDeletedTopics = async (req, res, next) => {
       limit: req.query.limit,
       deleted: true
     };
+
     const topics = await Topic.findDeletedTopicsPaginated(
       req.params.category,
       options
     );
 
-    // if (topics.length <= 0) {
-    //   res.status(404);
-    //   return next({
-    //     error: "NOTFOUND",
-    //     message: "No deleted topics found."
-    //   });
-    // }
-
+    console.log(topics.data);
     if (topics.data === undefined) {
       res.status(404);
       return next();
@@ -147,14 +141,6 @@ exports.getDeletedTopics = async (req, res, next) => {
     });
 
     const response = await Promise.all(deletedObj);
-
-    if (response === undefined) {
-      res.status(500);
-      return next({
-        error: "UNKNOWN",
-        message: "Oops, something bad happened, try again."
-      });
-    }
 
     res.json({
       deletedTopics: response,
