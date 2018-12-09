@@ -48,7 +48,7 @@ exports.topicCategorySchema = Joi.object().keys({
 exports.topicUpdateSchema = Joi.object().keys({
   topic_color: Joi.string(),
   title: Joi.string().required(),
-  slug: Joi.string().required(),
+  slug: Joi.string(),
   discussion: Joi.string().required()
 });
 
