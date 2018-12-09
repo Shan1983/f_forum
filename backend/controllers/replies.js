@@ -4,6 +4,7 @@ const User = require("../queries/users");
 const { replySchema } = require("../helpers/validation");
 const { generateId } = require("../helpers/auth");
 const moment = require("moment");
+const rewards = require("../helpers/rewards");
 
 exports.getReplies = async (req, res, next) => {
   try {
@@ -39,15 +40,13 @@ exports.getReplies = async (req, res, next) => {
           pcount: r.post_count,
           points: r.points,
           avatar: r.avatar,
-          role: {
-            title: r.title
-          }
+          role: r.title
         }
       };
     });
 
     res.json({
-      users: repliesObj,
+      replies: repliesObj,
       meta: {
         limit: replies.limit,
         count: replies.count,
@@ -62,7 +61,7 @@ exports.getReplies = async (req, res, next) => {
 };
 exports.postreply = async (req, res, next) => {
   try {
-    const errors = Joi.validate(replySchema);
+    const errors = Joi.validate(req.body, replySchema);
 
     if (errors.error) {
       res.status(400);
@@ -73,20 +72,19 @@ exports.postreply = async (req, res, next) => {
     }
 
     const replyObj = {
-      id: generateId(),
       topic_id: req.params.topic,
       user_id: req.session.userId,
       reply: req.body.reply
     };
 
-    const reply = await Reply.insert(replyObj);
+    await Reply.insert(replyObj);
 
     await User.addToPostCount(replyObj.user_id);
-    await User.addToPoints(replyObj.user_id, 20);
+    await User.addToPoints(replyObj.user_id, rewards.reply_reward);
 
     // emit sub email event
 
-    res.json({ success: true, reply });
+    res.json({ success: true });
   } catch (error) {
     res.status(400);
     next(error);
