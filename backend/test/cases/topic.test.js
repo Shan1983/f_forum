@@ -179,46 +179,278 @@ describe("TOPIC ROUTES", () => {
       });
     });
     describe("Locks a topic - Staff | Auth", () => {
-      it("should lock a open topic");
-      it("should unlock a closed topic");
-      it("should return 401 if illegally accessed");
+      it("should lock a open topic", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Mod");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1/lock")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        topic.should.have.status(200);
+        topic.body.should.have.property("success");
+      });
+      it("should return 401 if illegally accessed", async () => {
+        const agent = getAgent(server);
+
+        const topic = await agent
+          .post("/api/v1/topic/1/lock")
+          .set("content-type", "application/json");
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
     });
     describe("Makes a topic sticky - Staff | Auth", () => {
-      it("should make an open topic sticky");
-      it("should remove an open topic sticky status");
-      it("should return 401 if illegally accessed");
+      it("should make an open topic sticky", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Mod");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1/sticky")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        topic.should.have.status(200);
+        topic.body.should.have.property("success");
+      });
+      it("should return 401 if illegally accessed", async () => {
+        const agent = getAgent(server);
+
+        const topic = await agent
+          .post("/api/v1/topic/1/sticky")
+          .set("content-type", "application/json");
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
       // todo
       it("should remove an open topic sticky status via job");
     });
     describe("Moves a topic - Staff | Auth", () => {
-      it("should move a topic to another category");
-      it("should return 404 if no topic found");
-      it("should return 400 if validation fails");
-      it("should return 401 if illegally accessed");
+      it("should move a topic to another category", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Mod");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1/move")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "spiders" });
+
+        topic.should.have.status(200);
+        topic.body.should.have.property("success");
+      });
+      it("should return 404 if no topic found", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Mod");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/9999/move")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "spiders" });
+
+        topic.should.have.status(404);
+        topic.body.should.have.property("message");
+      });
+      it("should return 400 if validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Mod");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1/move")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "" });
+
+        topic.should.have.status(400);
+        topic.body.should.have.property("error");
+      });
+      it("should return 401 if illegally accessed", async () => {
+        const agent = getAgent(server);
+
+        const topic = await agent
+          .post("/api/v1/topic/1/move")
+          .set("content-type", "application/json")
+
+          .send({ title: "spiders" });
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
     });
     describe("Change a topics color - Auth", () => {
-      it("should change a topics color");
-      it("should return 404 if no topic exists");
-      it("should return 401 if not the topic owner");
-      it("should allow an admin to change topic color");
-      it("should return 401 if illegally accessed");
+      it("should change a topics color", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Owner");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1/color")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ changeColor: "#000" });
+
+        topic.should.have.status(200);
+        topic.body.should.have.property("success");
+      });
+      it("should return 404 if no topic exists", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Owner");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/9999/color")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ changeColor: "#000" });
+
+        topic.should.have.status(404);
+        topic.body.should.have.property("message");
+      });
+      it("should return 401 if not the topic owner", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Member");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .post("/api/v1/topic/1/color")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ changeColor: "#000" });
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
+      it("should return 401 if illegally accessed", async () => {
+        const agent = getAgent(server);
+
+        const topic = await agent
+          .post("/api/v1/topic/1/color")
+          .set("content-type", "application/json");
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
     });
   });
   describe("PUT", () => {
     describe("Edits a topic - Auth", () => {
-      it("should edit a topic");
-      it("should return 400 if validation fails");
-      it("should return 404 if no topic is found");
-      it("should return 401 if not the topic owner");
-      it("should return 401 if illegally accessed");
+      it("should edit a topic", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Owner");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .put("/api/v1/topic/1/edit")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "new title", discussion: "new discussion" });
+
+        topic.should.have.status(200);
+        topic.body.should.have.property("success");
+      });
+      it("should return 400 if validation fails", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Owner");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .put("/api/v1/topic/1/edit")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "", discussion: "new discussion" });
+
+        topic.should.have.status(400);
+        topic.body.should.have.property("error");
+      });
+      it("should return 404 if no topic is found", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Owner");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .put("/api/v1/topic/9999/edit")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "new title", discussion: "new discussion" });
+
+        topic.should.have.status(404);
+        topic.body.should.have.property("message");
+      });
+      it("should return 401 if not the topic owner", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .put("/api/v1/topic/1/edit")
+          .set("content-type", "application/json")
+          .set("Authorization", token)
+          .send({ title: "new title", discussion: "new discussion" });
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
+      it("should return 401 if illegally accessed", async () => {
+        const agent = getAgent(server);
+
+        const topic = await agent
+          .put("/api/v1/topic/1/edit")
+          .set("content-type", "application/json")
+
+          .send({ title: "new title", discussion: "new discussion" });
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
     });
   });
   describe("DELETE", () => {
     describe("Deletes a topic - Staff | Auth", () => {
-      it("should remove a topic");
-      it("should return 404 if topic not found");
-      it("should deduct reward points");
-      it("should return 401 if illegally accessed");
+      it("should remove a topic", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .delete("/api/v1/topic/1")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        topic.should.have.status(200);
+        topic.body.should.have.property("success");
+      });
+      it("should return 404 if topic not found", async () => {
+        const agent = getAgent(server);
+        const user = await login(agent, {}, "Admin");
+
+        const token = `Bearer ${user.body.token}`;
+        const topic = await agent
+          .delete("/api/v1/topic/9999")
+          .set("content-type", "application/json")
+          .set("Authorization", token);
+
+        topic.should.have.status(404);
+        topic.body.should.have.property("message");
+      });
+      it("should return 401 if illegally accessed", async () => {
+        const agent = getAgent(server);
+
+        const topic = await agent
+          .delete("/api/v1/topic/1")
+          .set("content-type", "application/json");
+
+        topic.should.have.status(401);
+        topic.body.should.have.property("error");
+      });
     });
   });
 });
