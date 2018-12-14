@@ -20,7 +20,7 @@ exports.getPoll = async (req, res, next) => {
 
     if (poll.rows.length <= 0) {
       res.status(404);
-      next();
+      return next();
     }
 
     res.json(poll);

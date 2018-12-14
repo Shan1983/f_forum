@@ -64,6 +64,7 @@ app.use("/api/v1/subscription", require("./router/subscriptions"));
 app.use("/api/v1/like", require("./router/likes"));
 app.use("/api/v1/reward", require("./router/rewards"));
 app.use("/api/v1/poll", require("./router/polls"));
+// ! add ban user controller/routes..
 
 // setup 404 handle
 app.use(notFound);

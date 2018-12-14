@@ -5,7 +5,7 @@ const controller = require("../controllers/poll");
 const { isAuthenticated, staff, log } = require("../middlewares");
 
 router.get("/:poll", isAuthenticated, log, controller.getPoll);
-router.get("/", isAuthenticated, log, staff, controller.getAllPolls);
+router.get("/", isAuthenticated, staff, log, controller.getAllPolls);
 router.get("/:poll/results", isAuthenticated, log, controller.getPollResults);
 router.post("/:topic/new", isAuthenticated, log, controller.createNewPoll);
 router.post(
