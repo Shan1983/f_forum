@@ -23,7 +23,23 @@ exports.getPoll = async (req, res, next) => {
       return next();
     }
 
-    res.json(poll);
+    const responses = poll.rows.map(async p => {
+      const votes = await Poll.getVoteCount(p.ans_id);
+      return { id: p.ans_id, answer: p.response, votes: votes.rows[0].count };
+    });
+
+    const votes = await Promise.all(responses);
+
+    const pollObj = {
+      poll_id: poll.rows[0].id,
+      poll_question: poll.rows[0].question,
+      started_by: poll.rows[0].username,
+      poll_active: poll.rows[0].active,
+      poll_duration: poll.rows[0].duration,
+      poll_answers: votes
+    };
+
+    res.json(pollObj);
   } catch (error) {
     res.status(400);
     next();
@@ -43,15 +59,19 @@ exports.getAllPolls = async (req, res, next) => {
       return next();
     }
 
-    const pollObj = poll.data.map(p => {
-      return {
-        color: p.topic_color,
-        title: p.title,
-        slug: p.slug,
-        status: p.lock,
-        created: moment(p.created_at).fromNow()
-      };
+    const responses = poll.data.map(p => {
+      return { id: p.ans_id, answer: p.response };
     });
+
+    const pollObj = {
+      poll_id: poll.data[0].id,
+      poll_question: poll.data[0].question,
+      started_by: poll.data[0].username,
+      poll_active: poll.data[0].active,
+      poll_duration: poll.data[0].duration,
+      poll_answers: responses,
+      path: `/api/v1/topic/${poll.data[0].topic_id}`
+    };
 
     res.json({
       poll: pollObj,
@@ -76,14 +96,28 @@ exports.getPollResults = async (req, res, next) => {
       next();
     }
 
-    const count = poll.rows.reduce((sum, row) => {
-      sum[row.poll_answers] = (sum[row.poll_answers] || 0) + 1;
-      return sum;
-    }, {});
+    const responses = poll.rows.map(async p => {
+      const votes = await Poll.getVoteCount(p.ans_id);
+      return { id: p.ans_id, answer: p.response, votes: votes.rows[0].count };
+    });
 
-    //this needs fixing during testing!!!
+    const votes = await Promise.all(responses);
 
-    res.json({ pollCount: count });
+    const winner = votes.reduce((prev, current) => {
+      return prev.votes > current.votes ? prev : current;
+    });
+
+    const pollObj = {
+      poll_id: poll.rows[0].id,
+      poll_question: poll.rows[0].question,
+      started_by: poll.rows[0].username,
+      poll_active: poll.rows[0].active,
+      poll_duration: poll.rows[0].duration,
+      winning_answer: winner,
+      all_answers: votes
+    };
+
+    res.json({ poll: pollObj });
   } catch (error) {
     res.status(400);
     next();
