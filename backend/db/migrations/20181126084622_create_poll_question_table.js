@@ -7,7 +7,7 @@ exports.up = function(knex, Promise) {
     t.boolean("active");
     t.timestamp("duration");
     t.timestamps(true, true);
-    t.boolean("deleted");
+    t.boolean("deleted").defaultTo(false);
     t.timestamp("deleted_at");
   });
 };
