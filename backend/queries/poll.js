@@ -4,13 +4,15 @@ const { paginator, softDelete } = require("./index");
 module.exports = {
   async findById(id) {
     const query = await db.raw(
-      `SELECT * 
+      `SELECT *, poll_answers.ans_id
         FROM poll_questions
         LEFT JOIN poll_answers ON poll_answers.poll_question_id = poll_questions.id
         LEFT JOIN poll_votes ON poll_votes.poll_question_id = poll_questions.id
+        LEFT JOIN users ON users.id = poll_questions.user_id
         WHERE poll_questions.id = ?
         AND
-        poll_questions.deleted = false`,
+        poll_questions.deleted = false
+  `,
       [id]
     );
 
@@ -19,14 +21,15 @@ module.exports = {
 
   async getAll(options) {
     const count = await db.raw(
-      `SELECT COUNT ('id') FROM poll_questions WHERE deleted = false`,
+      `SELECT COUNT ('id') FROM poll_questions WHERE active = true AND deleted = false`,
       []
     );
     const query = await db.raw(
-      `SELECT *
+      `SELECT *, poll_questions.id
           FROM poll_questions
         LEFT JOIN poll_answers ON poll_answers.poll_question_id = poll_questions.id
-        LEFT JOIN poll_votes ON poll_votes.poll_question_id = poll_questions.id`,
+        LEFT JOIN poll_votes ON poll_votes.poll_question_id = poll_questions.id
+        WHERE poll_questions.active = true AND poll_questions.deleted = false`,
       []
     );
 
@@ -38,6 +41,14 @@ module.exports = {
       limit: options.limit || 15
     };
     return paginator(paginate);
+  },
+
+  async getVoteCount(id) {
+    const query = await db.raw(
+      `SELECT COUNT('poll_response_id') FROM poll_votes WHERE poll_response_id = ?`,
+      [id]
+    );
+    return query;
   },
 
   async createPoll(poll) {
